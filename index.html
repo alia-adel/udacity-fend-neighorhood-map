@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Neighborhood Map</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="assets/stylesheets/vendor/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="assets/stylesheets/main.css">
+</head>
+
+<body>
+    <div class="app-container">        
+        <nav id="app-nav">
+            <h3>My Places</h3>
+            <ul data-bind="foreach: myPlaces">
+                <li>
+                    <a class="myplace" href="#" data-bind="text: name, click: bounceMarker"></a>
+                </li>
+            </ul>
+        </nav>
+        <div class="main">
+            <header>
+                <i id="close-nav" class="fa fa-bars fa-lg" aria-hidden="true"></i>
+                <p>Neighborhood Map</p>
+            </header>
+            <div id="map"></div>
+        </div>
+    </div>
+</body>
+<!-- Import JS files -->
+<script src="scripts/vendors/jquery-3.2.1.min.js"></script>
+<script src="scripts/vendors/knockout-3.4.2.js"></script>
+<script src="scripts/myPlaces.js"></script>
+<script src="scripts/ko.myPlaces.js"></script>
+<script src="scripts/app.js"></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDCl3RSg7NnRs5P1zJ5s8SA4qosIPUbxUs&callback=initMap">
+</script>
+
+</html>
