@@ -11,12 +11,19 @@
 </head>
 
 <body>
-    <div class="app-container">        
+    <div class="app-container">
         <nav id="app-nav">
             <h3>My Places</h3>
+            <div class="filter-form">                
+                <input type="text" placeholder="Filter places" 
+                    data-bind="value: $root.filtertext">
+                <i class="fa fa-filter" aria-hidden="true" data-bind="click: $root.updatePlaces"></i>
+                <i class="fa fa-refresh" aria-hidden="true" data-bind="click: $root.resetPlaces"></i>
+            </div>
+
             <ul data-bind="foreach: myPlaces">
                 <li>
-                    <a class="myplace" href="#" data-bind="text: name, click: bounceMarker"></a>
+                    <a class="myplace" href="#" data-bind="text: name, click: $root.bounceMarker"></a>
                 </li>
             </ul>
         </nav>
@@ -35,7 +42,7 @@
 <script src="scripts/myPlaces.js"></script>
 <script src="scripts/ko.myPlaces.js"></script>
 <script src="scripts/app.js"></script>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDCl3RSg7NnRs5P1zJ5s8SA4qosIPUbxUs&callback=initMap">
+<script async defer src="https://maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyDCl3RSg7NnRs5P1zJ5s8SA4qosIPUbxUs&callback=initMap">
 </script>
 
 </html>

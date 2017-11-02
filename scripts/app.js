@@ -7,6 +7,7 @@ var map;
 var myMarkers = [];
 
 
+
 /**
  * ##### Functions section #####
  */
@@ -28,18 +29,38 @@ function initMap() {
  * Description: Read places array & create markers on the map
  */
 function createMyPlacesMarkers() {
-    let marker, lat, lng;
+    let marker, lat, lng, infowindow;
+
+    var redStar = {
+        path: 'M 125,5 155,90 245,90 175,145 200,230 125,180 50,230 75,145 5,90 95,90 z',
+        fillColor: 'red',
+        fillOpacity: 1,
+        scale: 0.1,
+        strokeColor: 'red',
+        strokeWeight: 1
+      };
+
+
     places.forEach((place) => {
         lat = place.lat;
         lng = place.lng;
         marker = new google.maps.Marker({
             position: { lat, lng },
             map: map,
+            icon: redStar,
             animation: google.maps.Animation.DROP,
             title: place.name
         });
-        marker.addListener('click', markerOnClick);
+        
+        marker.addListener('click', function() {            
+            bounceMarker(this.position.lat(), this.position.lng());
+            let infowindow = new google.maps.InfoWindow({
+                content: createInfoWindow(this)
+            });
+            infowindow.open(map, this);
+        });
         myMarkers.push(marker);
+        
     });
 }
 
@@ -61,20 +82,42 @@ function bounceMarker(lat, lng) {
                         setTimeout(() => {
                             marker.setAnimation(null);
                         }, 2000);
+                        map.setCenter({lat: marker.position.lat(), lng: marker.position.lng()});
+                        map.setZoom(18);
                 }
             }
 
         });
     }
+    
 }
 
+/**
+ * Description: handle on click event on each marker.
+ * When clicking the marker the following will happen:
+ * - The marker will bounce
+ * - The Info Window will open
+ */
 function markerOnClick() {
     if(this) {
         this.setAnimation(google.maps.Animation.BOUNCE);
         setTimeout(() => {
             this.setAnimation(null);
-        }, 2000);
+        }, 2000);        
     }
+}
+
+/**
+ * Description: Formulates the info Window content
+ * @param 
+ * @return {infoPathContent} - {String}
+ */
+function createInfoWindow(marker) {
+    return `<div class="infoWindow">
+        <h3>${marker.title}</h3>
+        <span>Lat: ${marker.position.lat()}</span>
+        <span>Lng: ${marker.position.lng()}</span>
+    </div>"`;
 }
 
 /**
@@ -84,22 +127,20 @@ function markerOnClick() {
 /**
  * Hide/Show navigation on hamburger click
  */
-document.getElementById("close-nav").addEventListener("click", function () {
-    let classNames = document.getElementById("app-nav").className;
-    if (classNames.includes('hidden')) {
-        document.getElementById("app-nav").className = classNames.replace('hidden', '');
+$('#close-nav').click(() => {    
+    if ($('#app-nav').hasClass('hidden')) {
+        $('#app-nav').removeClass('hidden');
     } else {
-        document.getElementById("app-nav").className = `${classNames} hidden `;
+        $('#app-nav').addClass('hidden');
     }
 });
+
 
 /**
  * Bounce marker & open Info Window when my place link is clicked
  */
-Array.from(document.getElementsByClassName("myplace")).forEach((element) => {
-    element.addEventListener("click", function (event) {
-        event.preventDefault();
-        bounceMarker(this);
-    });
+$('.myplace').click((event) => {
+    event.preventDefault();
+    bounceMarker(this);
 });
 

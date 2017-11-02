@@ -2,29 +2,29 @@
 const places = [
     {
         "name": "Salah El Din Al Ayouby Citadel",
-        "lat": 30.0280038,
-        "lng": 31.2563514,
+        "lat": 30.029865,
+        "lng": 31.2589168,
         "type": ""
     }, {
-        "name": "Qalawun Complex",
-        "lat": 30.0494038,
-        "lng": 31.2587996
+        "name": "EL Moez Mosque",
+        "lat": 30.049404,
+        "lng": 31.259147
     }, {
         "name": "Wekalet El Ghoury",
         "lat": 30.0456605,
         "lng": 31.2586922
     }, {
         "name": "Al-Rifa'i Mosque",
-        "lat": 30.0327137,
-        "lng": 31.2548467
+        "lat": 30.032714,
+        "lng": 31.255172
     }, {
         "name": "Khan el-Khalili",
         "lat": 30.0477432,
-        "lng": 31.2600917
+        "lng": 31.2600651
     }, {
         "name": "Masjid Amr Ibn El Aas",
-        "lat": 30.0101261,
-        "lng": 31.2309573
+        "lat": 30.010276,
+        "lng": 31.232564
     }, {
         "name": "Ben Ezra Synagogue",
         "lat": 30.0058046,
