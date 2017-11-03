@@ -47,7 +47,7 @@ function createMyPlacesMarkers() {
         marker = new google.maps.Marker({
             position: { lat, lng },
             map: map,
-            icon: redStar,
+            // icon: redStar,
             animation: google.maps.Animation.DROP,
             title: place.name
         });
