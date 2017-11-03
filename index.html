@@ -12,7 +12,7 @@
 
 <body>
     <div class="app-container">
-        <nav id="app-nav" class="hidden">
+        <nav id="app-nav" data-bind="css: {hidden: $data.navHidden}">
             <h2 class="nav-header">
                 Old Cairo places
             </h2>
@@ -30,7 +30,7 @@
         </nav>
         <div class="main">
             <header>
-                <i id="close-nav" class="fa fa-bars fa-lg" aria-hidden="true"></i>
+                <i id="close-nav" class="fa fa-bars fa-lg" aria-hidden="true" data-bind="click: $root.changeNavigationStatus"></i>
                 <h2>Neighborhood Map</h2>
             </header>
             <div id="map"></div>
@@ -42,7 +42,6 @@
 <script src="scripts/vendors/knockout-3.4.2.js"></script>
 <script src="scripts/myPlaces.js"></script>
 <script src="scripts/ko.myPlaces.js"></script>
-<script src="scripts/app.js"></script>
 <script async defer src="https://maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyDCl3RSg7NnRs5P1zJ5s8SA4qosIPUbxUs&callback=initMap">
 </script>
 

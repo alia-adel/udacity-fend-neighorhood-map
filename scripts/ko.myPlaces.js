@@ -1,11 +1,17 @@
 /**
+ * ##### Variables section #####
+ */
+
+var map;
+var myMarkers = [];
+
+/**
  * Description: My Places model
  */
-function MyPlace(name = 'UNKNOWN', lat, lng) {
+function MyPlace(name = 'UNKNOWN', marker) {
     let self = this;
     self.name = name;
-    self.lat = lat;
-    self.lng = lng;
+    self.marker = marker;
     self.selectedClassName = ko.observable(false);
 }
 
@@ -16,9 +22,17 @@ function MyPlace(name = 'UNKNOWN', lat, lng) {
 function MyPlacesViewModel() {
     let self = this;
     self.filterText = ko.observable("");
+    self.navHidden = ko.observable(true);
 
     // Initial load to myPlaces
     self.myPlaces = ko.observableArray(loadPlacesToModelArray());
+
+    /**
+     * Description: Change navifation visibility status
+     */
+    self.changeNavigationStatus = function() {
+        (self.navHidden())?self.navHidden(false):self.navHidden(true);
+    }
 
     /**
      * Description: When user filters on places
@@ -37,10 +51,10 @@ function MyPlacesViewModel() {
                 // In case place matches, keep it in a side array
                 updatePlaces.push(tempPlaces[i]);
                 // In case the place matches re-add the marker on the map if not there
-                updateMarker(tempPlaces[i].lat, tempPlaces[i].lng, true);
+                updateMarker(tempPlaces[i].marker, true);
             } else {
                 // In case the place doesnt match remove its marker from the map
-                updateMarker(tempPlaces[i].lat, tempPlaces[i].lng, false);
+                updateMarker(tempPlaces[i].marker, false);
             }
 
             // Update myPlaces observable array with the update places matching the filter text
@@ -57,7 +71,7 @@ function MyPlacesViewModel() {
         self.myPlaces(loadPlacesToModelArray());
         self.filterText("");
         myMarkers.forEach((marker) => {
-            createMyPlacesMarkers(marker.lat, marker.lng, true);
+            createMyPlacesMarkers(marker, true);
         });
     }
 
@@ -68,7 +82,7 @@ function MyPlacesViewModel() {
      * - set the list item as selected
      */
     self.triggerPlaceClickActions = function () {
-        bounceMarker(this.lat, this.lng);
+        bounceMarker(this.marker);
 
         self.myPlaces().forEach((place) => {
             place.selectedClassName(false);
@@ -77,6 +91,104 @@ function MyPlacesViewModel() {
     }
 }
 
+
+/**
+ * ##### Functions section #####
+ */
+
+
+/**
+ * Description: This function will load the map on page load
+ */
+function initMap() {
+    map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: 30.040076, lng: 31.265423 },
+        zoom: 15
+    });
+
+    // Bind MVVM
+    ko.applyBindings(new MyPlacesViewModel());    
+}
+
+/**
+ * Description: Read places array & create markers on the map
+ */
+function createMyPlaceMarker(title, lat, lng) {
+    let marker, infowindow;
+
+    var redStar = {
+        path: 'M 125,5 155,90 245,90 175,145 200,230 125,180 50,230 75,145 5,90 95,90 z',
+        fillColor: 'red',
+        fillOpacity: 1,
+        scale: 0.1,
+        strokeColor: 'red',
+        strokeWeight: 1
+      };
+
+    // Create marker
+    marker = new google.maps.Marker({
+        position: { lat, lng },
+        map: map,
+        // icon: redStar,
+        animation: google.maps.Animation.DROP,
+        title: title
+    });
+
+    marker.addListener('click', function() {            
+        bounceMarker(this);
+        let infowindow = new google.maps.InfoWindow({
+            content: createInfoWindow(this)
+        });
+        infowindow.open(map, this);
+    });
+
+    myMarkers.push(marker);
+
+    return marker;
+}
+
+/**
+ * Description: let marker bounce
+ */
+function bounceMarker(marker) {
+    marker.setAnimation(google.maps.Animation.BOUNCE);
+    setTimeout(() => {
+        marker.setAnimation(null);
+    }, 2000);
+    map.setCenter({lat: marker.position.lat(), lng: marker.position.lng()});
+    map.setZoom(18);    
+}
+
+/**
+ * Description: handle on click event on each marker.
+ * When clicking the marker the following will happen:
+ * - The marker will bounce
+ * - The Info Window will open
+ */
+function markerOnClick() {
+    if(this) {
+        this.setAnimation(google.maps.Animation.BOUNCE);
+        setTimeout(() => {
+            this.setAnimation(null);
+        }, 2000);        
+    }
+}
+
+
+/**
+ * Description: Formulates the info Window content
+ * @param 
+ * @return {infoPathContent} - {String}
+ */
+function createInfoWindow(marker) {
+    return `<div class="infoWindow">
+        <h3>${marker.title}</h3>
+        <span>Lat: ${marker.position.lat()}</span>
+        <span>Lng: ${marker.position.lng()}</span>
+    </div>"`;
+}
+
+
 /**
  * Desrciption: Reads places array & returns
  * a new array filled with "MyPlace" models.
@@ -84,8 +196,10 @@ function MyPlacesViewModel() {
 function loadPlacesToModelArray() {
     // Editable data
     let myPlacesTemp = [];
+    myMarkers = [];
     places.forEach((place) => {
-        myPlacesTemp.push(new MyPlace(place.name, place.lat, place.lng));
+        myPlacesTemp.push(new MyPlace(place.name, 
+            createMyPlaceMarker(place.name, place.lat, place.lng)));
     });
 
     return myPlacesTemp;
@@ -95,27 +209,12 @@ function loadPlacesToModelArray() {
  * Description: filter markers on the map based on 
  * //TODO not working
  */
-function updateMarker(lat, lng, addMarker) {
-    console.log(`lat: ${lat}, lng: ${lng}, addMarker: ${addMarker}`);
-    myMarkers.forEach((marker) => {
-        
-        console.log(`Now matching lat & lng:
-        Do lat match ${marker.getPosition().lat()}? ${Object.is(marker.getPosition().lat(), lat)}
-        Do lng match ${marker.getPosition().lng()}? ${Object.is(marker.getPosition().lng(), lng)} `);
+function updateMarker(marker, addMarker) {
+    if(marker && addMarker && marker.getMap() == null) {
+        marker.setMap(map);
+    }
 
-        if (Object.is(marker.getPosition().lat(), lat)
-            && Object.is(marker.getPosition().lng(), lng)) {
-                
-            console.log(`Marker Map obj before set: ${marker.getMap()}
-            Is map === null ${marker.getMap() === null}`);
-            if (addMarker && marker.getMap() === null) {
-                marker.setMap(map);
-            } else if(!addMarker){
-                marker.setMap(null);
-            }
-            console.log(`Marker Map obj after set: ${marker.getMap()}`);
-        }
-    });
+    if(marker && !addMarker) {
+        marker.setMap(null);
+    }
 }
-
-ko.applyBindings(new MyPlacesViewModel());
