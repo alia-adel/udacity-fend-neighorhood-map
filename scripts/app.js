@@ -139,8 +139,8 @@ $('#close-nav').click(() => {
 /**
  * Bounce marker & open Info Window when my place link is clicked
  */
-$('.myplace').click((event) => {
-    event.preventDefault();
-    bounceMarker(this);
-});
+// $('.myplace').click((event) => {
+//     event.preventDefault();
+//     bounceMarker(this);
+// });
 

@@ -7,9 +7,10 @@
  */
 function MyPlace(name = 'UNKNOWN', lat, lng) {
     let self = this;
-    self.name = name;
+    self.name = ko.observable(name);
     self.lat = lat;
     self.lng = lng;
+    self.selectedClassName = ko.observable(false);
 }
 
 function MyPlacesViewModel() {
@@ -22,13 +23,14 @@ function MyPlacesViewModel() {
 
     self.myPlaces = ko.observableArray(myPlacesTemp);
 
-    self.filtertext = ko.observable("");
+    self.filtertext = ko.observable();
 
     // When user filters on places, remove the un matches results from myPlaces array
     self.updatePlaces = function () {
         let filteredPlaces = [];
         myPlacesTemp = places;
         self.myPlaces = ko.observableArray(places);
+        self.selectedPlac = ko.observable();
         myPlacesTemp.forEach((place, index) => {
             // console.log(`Place to match: ${place.name.toLocaleLowerCase()}
             //     Filtered Text: ${self.filtertext().toLocaleLowerCase()}
@@ -60,14 +62,25 @@ function MyPlacesViewModel() {
             myPlacesTemp.push(new MyPlace(place.name, place.lat, place.lng));
         });
         self.myPlaces = ko.observableArray(myPlacesTemp);
-        self.filtertext = ko.observable("");
+        self.filtertext = ko.observable();
 
     }
 
-    // When list item is clicked the bounceMarker function is called
-    self.bounceMarker = function () {
+    /**
+     * One function to trigger all actions needed when clicking on a place
+     * in the list, i.e.:
+     * - Bounce the marker on the map & open info window
+     * - set the list item as selected
+     */
+    self.triggerPlaceClickActions = function () {
         bounceMarker(this.lat, this.lng);
+
+        self.myPlaces().forEach((place) => {
+            place.selectedClassName(false);
+        });
+        this.selectedClassName(true);
     }
+
 }
 
 ko.applyBindings(new MyPlacesViewModel());

@@ -5,32 +5,33 @@
     <title>Neighborhood Map</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Kaushan+Script|Lato:700" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="assets/stylesheets/vendor/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" type="text/css" href="assets/stylesheets/main.css">
 </head>
 
 <body>
     <div class="app-container">
-        <nav id="app-nav">
-            <h3>My Places</h3>
-            <div class="filter-form">                
-                <input type="text" placeholder="Filter places" 
-                    data-bind="value: $root.filtertext">
-                <i class="fa fa-filter" aria-hidden="true" data-bind="click: $root.updatePlaces"></i>
-                <i class="fa fa-refresh" aria-hidden="true" data-bind="click: $root.resetPlaces"></i>
+        <nav id="app-nav" class="hidden">
+            <h2 class="nav-header">
+                Old Cairo places
+            </h2>
+            <hr>
+            <div class="filter-form">
+                <input type="text" placeholder="Filter places" data-bind="value: $root.filtertext">
+                <i class="fa fa-filter fa-lg" aria-hidden="true" data-bind="click: $root.updatePlaces"></i>
+                <i class="fa fa-refresh fa-lg" aria-hidden="true" data-bind="click: $root.resetPlaces"></i>
             </div>
 
             <ul data-bind="foreach: myPlaces">
-                <li>
-                    <a class="myplace" href="#" data-bind="text: name, click: $root.bounceMarker"></a>
+                <li class="myplace" data-bind="text: name, click: $root.triggerPlaceClickActions, css: {active: $data.selectedClassName}">
                 </li>
             </ul>
         </nav>
         <div class="main">
             <header>
                 <i id="close-nav" class="fa fa-bars fa-lg" aria-hidden="true"></i>
-                <p>Neighborhood Map</p>
+                <h1>Neighborhood Map</h1>
             </header>
             <div id="map"></div>
         </div>
