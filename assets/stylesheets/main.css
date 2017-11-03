@@ -194,3 +194,15 @@ header h1 {
 #app-nav.hidden .filter-form .fa {
     display: none;
 }
+
+#place-info {
+    display: none;
+}
+
+#place-info.active {
+    width: 100%;
+    padding: 10px 20px;
+    display: block;
+    background-color: #ffffff;
+    color: #000000;
+}

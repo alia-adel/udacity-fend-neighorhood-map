@@ -1,6 +1,17 @@
+
+
+// https://api.foursquare.com/v2/venues/explore?client_id=RDOSYH0CG0SB2JP25AUKS5OJOUTYWGLJVPAF00GCRB01F5R5&client_secret=YDBA2IU3ZLW2HGH3EXZS1BXNVYPROWP40BQWTXGUCDYNJD3G&ll=30.029865,31.2589168&v=20170801
+
 /**
  * ##### Variables section #####
  */
+
+// Foursquare api authentication
+const FS_CLIENT_ID = "RDOSYH0CG0SB2JP25AUKS5OJOUTYWGLJVPAF00GCRB01F5R5";
+const FS_CLIENT_SECRET = "YDBA2IU3ZLW2HGH3EXZS1BXNVYPROWP40BQWTXGUCDYNJD3G";
+const FS_LOCATION_SEARCH_URL_BASE
+    = `https://api.foursquare.com/v2/venues/explore?client_id=${FS_CLIENT_ID}&client_secret=${FS_CLIENT_SECRET}&v=20170801&ll=`;
+
 
 var map;
 var myMarkers = [];
@@ -13,6 +24,8 @@ function MyPlace(name = 'UNKNOWN', marker) {
     self.name = name;
     self.marker = marker;
     self.selectedClassName = ko.observable(false);
+    self.placeInfoVisible = ko.observable(false);
+    self.placeInfo = ko.observable("");
 }
 
 
@@ -30,8 +43,8 @@ function MyPlacesViewModel() {
     /**
      * Description: Change navifation visibility status
      */
-    self.changeNavigationStatus = function() {
-        (self.navHidden())?self.navHidden(false):self.navHidden(true);
+    self.changeNavigationStatus = function () {
+        (self.navHidden()) ? self.navHidden(false) : self.navHidden(true);
     }
 
     /**
@@ -87,7 +100,10 @@ function MyPlacesViewModel() {
         self.myPlaces().forEach((place) => {
             place.selectedClassName(false);
         });
+
         this.selectedClassName(true);
+        this.placeInfoVisible(true);
+        this.placeInfo(getFourSquarePlaceInfo(this));
     }
 }
 
@@ -95,6 +111,36 @@ function MyPlacesViewModel() {
 /**
  * ##### Functions section #####
  */
+
+/**
+ * Description: Get Foursquare text & photos for the given marker
+ */
+function getFourSquarePlaceInfo(place) {
+    fetch(`${FS_LOCATION_SEARCH_URL_BASE}${place.marker.position.lat()},${place.marker.position.lng()}`).
+        then((response) => {
+            console.log(response);
+            if (response.ok) {
+                return response.json();
+            } else {
+                console.log(`Error occured 
+                ${response.status}`);
+            }
+        }).then((response) => {
+            let fs_response = response.response;
+            if (fs_response.groups && fs_response.groups.length > 0
+                && fs_response.groups[0].items && fs_response.groups[0].items.length > 0) {
+                let first_item = fs_response.groups[0].items[0];
+                if (first_item.tips && first_item.tips.length > 0) {
+                    place.placeInfo(first_item.tips[0].text);
+                }
+            }
+
+        }).
+        catch((error) => {
+            console.log(error);
+        });
+
+}
 
 
 /**
@@ -107,7 +153,7 @@ function initMap() {
     });
 
     // Bind MVVM
-    ko.applyBindings(new MyPlacesViewModel());    
+    ko.applyBindings(new MyPlacesViewModel());
 }
 
 /**
@@ -123,7 +169,7 @@ function createMyPlaceMarker(title, lat, lng) {
         scale: 0.1,
         strokeColor: 'red',
         strokeWeight: 1
-      };
+    };
 
     // Create marker
     marker = new google.maps.Marker({
@@ -134,7 +180,7 @@ function createMyPlaceMarker(title, lat, lng) {
         title: title
     });
 
-    marker.addListener('click', function() {            
+    marker.addListener('click', function () {
         bounceMarker(this);
         let infowindow = new google.maps.InfoWindow({
             content: createInfoWindow(this)
@@ -155,8 +201,8 @@ function bounceMarker(marker) {
     setTimeout(() => {
         marker.setAnimation(null);
     }, 2000);
-    map.setCenter({lat: marker.position.lat(), lng: marker.position.lng()});
-    map.setZoom(18);    
+    map.setCenter({ lat: marker.position.lat(), lng: marker.position.lng() });
+    map.setZoom(18);
 }
 
 /**
@@ -166,11 +212,11 @@ function bounceMarker(marker) {
  * - The Info Window will open
  */
 function markerOnClick() {
-    if(this) {
+    if (this) {
         this.setAnimation(google.maps.Animation.BOUNCE);
         setTimeout(() => {
             this.setAnimation(null);
-        }, 2000);        
+        }, 2000);
     }
 }
 
@@ -198,7 +244,7 @@ function loadPlacesToModelArray() {
     let myPlacesTemp = [];
     myMarkers = [];
     places.forEach((place) => {
-        myPlacesTemp.push(new MyPlace(place.name, 
+        myPlacesTemp.push(new MyPlace(place.name,
             createMyPlaceMarker(place.name, place.lat, place.lng)));
     });
 
@@ -210,11 +256,11 @@ function loadPlacesToModelArray() {
  * //TODO not working
  */
 function updateMarker(marker, addMarker) {
-    if(marker && addMarker && marker.getMap() == null) {
+    if (marker && addMarker && marker.getMap() == null) {
         marker.setMap(map);
     }
 
-    if(marker && !addMarker) {
+    if (marker && !addMarker) {
         marker.setMap(null);
     }
 }

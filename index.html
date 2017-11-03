@@ -27,6 +27,15 @@
                 <li class="myplace" data-bind="text: name, click: $root.triggerPlaceClickActions, css: {active: $data.selectedClassName}">
                 </li>
             </ul>
+            <article data-bind="foreach: myPlaces">
+                <div id="place-info" data-bind="text: placeInfo, css: {active: $data.placeInfoVisible}">
+                    <p>FourSquare Review</p>
+                    <span data-bind="text: placeInfo">                        
+                    </span>
+                </div>
+            </article>
+
+
         </nav>
         <div class="main">
             <header>
