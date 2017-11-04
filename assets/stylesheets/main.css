@@ -199,3 +199,9 @@ header h2 {
     height: 300px;
     overflow: auto;
 }
+
+.modal-header {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}

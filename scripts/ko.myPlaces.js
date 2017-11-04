@@ -147,6 +147,7 @@ function PlacesViewModel() {
 
     // Initial load to myPlaces
     self.myPlaces = ko.observableArray(loadPlacesToPlacesModelArray());
+    self.myPlacesBkp = self.myPlaces();
 
 
     // Initial Load Place FourSquare info
@@ -185,9 +186,9 @@ function PlacesViewModel() {
      *      1- Remove the unmatched results from myPlaces' array
      *      2- Remove their markers from the map
      */
-    self.updatePlaces = function () {
+    self.filterPlaces = function () {
         // Make sure to reload all places
-        let tempPlaces = loadPlacesToPlacesModelArray();
+        let tempPlaces = self.myPlacesBkp;
         let updatePlaces = [];
 
         // loop on places to see if any of the names matches partially the filter text
@@ -214,10 +215,14 @@ function PlacesViewModel() {
      * Description: Resets back list of places & markers
      */
     self.resetPlaces = function () {
-        self.myPlaces(loadPlacesToPlacesModelArray());
+        self.myPlaces(self.myPlacesBkp);
         self.filterText("");
         myMarkers.forEach((marker) => {
             updateMarker(marker, true);
+        });
+
+        self.myPlaces().forEach((place) => {
+            place.selectedClassName(false);
         });
     }
 
@@ -349,6 +354,7 @@ function loadInfoWindow(marker) {
  * Description: Get Foursquare text & photos for the given marker
  * https://api.foursquare.com/v2/venues/explore?client_id=RDOSYH0CG0SB2JP25AUKS5OJOUTYWGLJVPAF00GCRB01F5R5&client_secret=YDBA2IU3ZLW2HGH3EXZS1BXNVYPROWP40BQWTXGUCDYNJD3G&v=20170801&ll=30.0058,31.230999999999995
  */
+//TODO handle all empty values when loading the object
 function loadFourSquarePlaceInfo(place) {
     let placeInfo = {};
     fetch(`${FS_LOCATION_SEARCH_URL_BASE}${place.marker.position.lat()},${place.marker.position.lng()}`).
@@ -410,7 +416,6 @@ function loadFourSquarePlaceInfo(place) {
 
 /**
  * Description: filter markers on the map based on 
- * //TODO not working
  */
 function updateMarker(marker, addMarker) {
     if (marker && addMarker && marker.getMap() == null) {

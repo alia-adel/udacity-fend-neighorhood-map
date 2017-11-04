@@ -15,7 +15,7 @@
         <nav id="app-nav" data-bind="css: {hidden: $data.navHidden}">
             <div class="filter-form">
                 <input type="text" placeholder="Filter places" data-bind="value: $root.filterText">
-                <i class="fa fa-filter fa-lg" aria-hidden="true" data-bind="click: $root.updatePlaces"></i>
+                <i class="fa fa-filter fa-lg" aria-hidden="true" data-bind="click: $root.filterPlaces"></i>
                 <i class="fa fa-refresh fa-lg" aria-hidden="true" data-bind="click: $root.resetPlaces"></i>
             </div>
 
@@ -42,9 +42,9 @@
                     <h3 class="brand-name">Foursquare</h3>
                 </div>
                 <div class="modal-body">
-                    <!-- <p data-bind="text: $root.selectedPlace().name"></p> -->
-                    <blockquote data-bind="text: $root.selectedPlace().placeFourSquareInfo().qoute.text"></blockquote>
-                    <!-- ___ <span data-bind="text: $root.selectedPlace().placeFourSquareInfo().qoute.user"></span> -->
+                    <strong><p data-bind="text: $root.selectedPlace().name"></p></strong>
+                    <q><blockquote data-bind="text: $root.selectedPlace().placeFourSquareInfo().qoute.text"></blockquote></q>
+                    ___ <span data-bind="text: $root.selectedPlace().placeFourSquareInfo().qoute.user"></span>
                     <hr>
                     <figure>
                         <img data-bind="attr: {src: $root.selectedPlace().placeFourSquareInfo().photo.url, alt: $root.selectedPlace().name}"/>
