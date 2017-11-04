@@ -23,13 +23,6 @@
                 <li class="myplace" data-bind="text: name, click: $root.triggerPlaceClickActions, css: {active: $data.selectedClassName}">
                 </li>
             </ul>
-            <article data-bind="foreach: myPlaces">
-                <div id="place-info" data-bind="text: placeInfo, css: {active: $data.placeInfoVisible}">
-                    <p>FourSquare Review</p>
-                    <span data-bind="text: placeInfo">                        
-                    </span>
-                </div>
-            </article>
 
 
         </nav>
@@ -39,6 +32,31 @@
                 <h2>Old Cairo Map</h2>
             </header>
             <div id="map"></div>
+        </div>
+
+        <!-- Markup data -->
+        <div class="template">
+            <div id="info-window">
+                <div class="modal-header">
+                    <i class="fa fa-foursquare fa-2x brand-icon" aria-hidden="true"></i>
+                    <h3 class="brand-name">Foursquare</h3>
+                </div>
+                <div class="modal-body">
+                    <!-- <blockquote bind-data="text: $root.selectedPlace.placeInfo.qoute.text"></blockquote> -->
+                    <p bind-data="text: $root.selectedPlace.name"></p>
+                    <blockquote bind-data="text: $root.selectedPlace.name"></blockquote>
+                    <hr>
+                    <figure>
+                        <!-- <img 
+                                    data-bind="attr: {src: $root.selectedPlace.placeInfo.photo.url, alt: $root.selectedPlace.name}"/> -->
+                    </figure>
+                    gakjfakdjhgfadhgfljagfsjl
+                    asjflajflakdjlfksdvkf;lfkg;fa-lgsdgasdg
+                    asjflajflakdjlfksdvkf;lfkg;fa-lgsdgasdg
+                    asjflajflakdjlfksdvkf;lfkg;fa-lgsdgasdg
+                    asjflajflakdjlfksdvkf;lfkg;fa-lgsdgasdg
+                </div>
+            </div>
         </div>
     </div>
 </body>

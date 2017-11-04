@@ -46,7 +46,7 @@
 const FS_CLIENT_ID = "RDOSYH0CG0SB2JP25AUKS5OJOUTYWGLJVPAF00GCRB01F5R5";
 const FS_CLIENT_SECRET = "YDBA2IU3ZLW2HGH3EXZS1BXNVYPROWP40BQWTXGUCDYNJD3G";
 const FS_LOCATION_SEARCH_URL_BASE
-    = `https://api.foursquare.com/v2/venues/explore?client_id=${FS_CLIENT_ID}&client_secret=${FS_CLIENT_SECRET}&v=20170801&ll=`;
+    = `https://api.foursquare.com/v2/venues/explore?client_id=${FS_CLIENT_ID}&client_secret=${FS_CLIENT_SECRET}&v=20170801&radius=200&venuePhotos=1&sortByDistance=1&limit=1&ll=`;
 let oldCairoPlaces = [{
     "name": "Salah El Din Al Ayouby Citadel"
 }, {
@@ -71,21 +71,25 @@ var map;
 var myMarkers = [];
 
 /**
- * Description: My Places model
+ * Description: Place model
  */
-function Place(name = 'UNKNOWN', location) {
-    let self = this;
+function Place(name = 'UNKNOWN', place = undefined) {
+    let self = this;    
     self.name = name;
-    self.location = ko.observable(location);
+    self.place = place
+    self.location = ko.computed(function () {
+        return self.place.geometry.location;
+    }, self);        
     self.marker = ko.computed(function () {
         return createPlaceMarker(
             self.name, self.location().lat(), self.location().lng());
     }, self);
     self.selectedClassName = ko.observable(false);
     self.placeInfoVisible = ko.observable(false);
-    self.placeInfo = ko.observable("");
+    // Foursquare data
+    self.placeFourSquareInfo = ko.observable({});
 }
-
+ 
 
 /**
  * Description: Map MVVM
@@ -98,11 +102,23 @@ function PlacesViewModel() {
     // Initial load to myPlaces
     self.myPlaces = ko.observableArray(loadPlacesToPlacesModelArray());
 
+    // Observe the currently selected place
+    self.selectedPlace = ko.observable();
+
     /**
      * Description: Change navifation visibility status
      */
     self.changeNavigationStatus = function () {
         (self.navHidden()) ? self.navHidden(false) : self.navHidden(true);
+    }
+
+    /**
+     * Open FourSquare Modal window loaded with the selected place info
+     */
+    self.loadFourSquareData = function() {
+        //TODO fix this loading data returns undefined
+        // self.selectedPlace().placeFourSquareInfo(loadFourSquarePlaceInfo(self.selectedPlace()));        
+        self.selectedPlace().placeInfoVisible(true);
     }
 
     /**
@@ -142,7 +158,7 @@ function PlacesViewModel() {
         self.myPlaces(loadPlacesToPlacesModelArray());
         self.filterText("");
         myMarkers.forEach((marker) => {
-            createMyPlacesMarkers(marker, true);
+            updateMarker(marker, true);
         });
     }
 
@@ -154,53 +170,27 @@ function PlacesViewModel() {
      * - Display Foursquare info related to the selected place
      */
     self.triggerPlaceClickActions = function () {
+        
         map.setCenter({ lat: this.marker().position.lat(), lng: this.marker().position.lng() });
         map.setZoom(18);
+        loadInfoWindow(this.marker());
 
         self.myPlaces().forEach((place) => {
             place.selectedClassName(false);
         });
-
-        this.selectedClassName(true);
-
-        this.placeInfoVisible(true);
-        this.placeInfo(getFourSquarePlaceInfo(this));
+        self.selectedPlace(this);
+        this.selectedClassName(true);        
     }
 }
+
+/**
+ * #### end of Kockout View Model ####
+ */
 
 
 /**
  * ##### Functions section #####
  */
-
-/**
- * Description: Get Foursquare text & photos for the given marker
- */
-function getFourSquarePlaceInfo(place) {
-    fetch(`${FS_LOCATION_SEARCH_URL_BASE}${place.marker().position.lat()},${place.marker().position.lng()}`).
-        then((response) => {
-            if (response.ok) {
-                return response.json();
-            } else {
-                console.log(`Error occured with status: ${response.status}`);
-            }
-        }).then((response) => {
-            let fs_response = response.response;
-            if (fs_response.groups && fs_response.groups.length > 0
-                && fs_response.groups[0].items && fs_response.groups[0].items.length > 0) {
-                let first_item = fs_response.groups[0].items[0];
-                if (first_item.tips && first_item.tips.length > 0) {
-                    place.placeInfo(first_item.tips[0].text);
-                }
-            }
-
-        }).
-        catch((error) => {
-            console.log(error);
-        });
-
-}
-
 
 /**
  * Description: This function will load the map on page load
@@ -236,7 +226,7 @@ function geoCodePlaces() {
                 { 'address': place.name },
                 function (results, status) {
                     if (status === 'OK') {
-                        place.location = results[0].geometry.location;
+                        place.place = results[0];
                         counter--;
                         if (counter === 0) {
                             resolve('OK');
@@ -269,7 +259,7 @@ function loadPlacesToPlacesModelArray() {
     // Editable data
     let placesTemp = [];
     oldCairoPlaces.forEach((place) => {
-        placesTemp.push(new Place(place.name, place.location));
+        placesTemp.push(new Place(place.name, place.place));
     });
 
     return placesTemp;
@@ -307,10 +297,7 @@ function createPlaceMarker(title, lat, lng) {
         }, 2000);
         map.setCenter({ lat: this.position.lat(), lng: this.position.lng() });
 
-        let infowindow = new google.maps.InfoWindow({
-            content: createInfoWindow(this)
-        });
-        infowindow.open(map, this);
+        loadInfoWindow(this);
     });
 
     myMarkers.push(marker);
@@ -319,22 +306,88 @@ function createPlaceMarker(title, lat, lng) {
 }
 
 
-
-
 /**
  * Description: Formulates the info Window content
+ * & opens it
  * @param 
  * @return {infoPathContent} - {String}
  */
-function createInfoWindow(marker) {
-    return `<div class="infoWindow">
-        <h3>${marker.title}</h3>
-        <span>Lat: ${marker.position.lat()}</span>
-        <span>Lng: ${marker.position.lng()}</span>
-    </div>"`;
+function loadInfoWindow(marker) {
+    let content = $('#info-window').html();
+    
+    // `<div class="infoWindow">
+    //     <h3>${marker.title}</h3>
+    //     <span>Lat: ${marker.position.lat()}</span>
+    //     <span>Lng: ${marker.position.lng()}</span>
+    // </div>"`;
+    let infowindow = new google.maps.InfoWindow({
+        content: content,
+        maxWidth: 300
+    });
+
+    infowindow.open(map, marker);
 }
 
+/**
+ * Description: Get Foursquare text & photos for the given marker
+ * https://api.foursquare.com/v2/venues/explore?client_id=RDOSYH0CG0SB2JP25AUKS5OJOUTYWGLJVPAF00GCRB01F5R5&client_secret=YDBA2IU3ZLW2HGH3EXZS1BXNVYPROWP40BQWTXGUCDYNJD3G&v=20170801&ll=30.0058,31.230999999999995
+ */
+function loadFourSquarePlaceInfo(place) {
+    fetch(`${FS_LOCATION_SEARCH_URL_BASE}${place.marker().position.lat()},${place.marker().position.lng()}`).
+        then((response) => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                console.log(`Error occured with status: ${response.status}`);
+            }
+        }).then((response) => {
+            let fs_response = response.response;
+            let placeInfo = {};
+            if (fs_response.groups && fs_response.groups.length > 0
+                && fs_response.groups[0].items && fs_response.groups[0].items.length > 0) {
 
+                let first_item = fs_response.groups[0].items[0];
+                if(first_item.tips && first_item.tips.length > 0) {
+                    placeInfo.quote = {};
+                    placeInfo.quote.text = first_item.tips.text;
+                    if(first_item.tips.user) {
+                        placeInfo.qoute.user 
+                        = `${first_item.tips.user.firstName} ${first_item.tips.user.lastName}`;
+                    }
+                }
+
+                if(first_item.venue && first_item.venue.length > 0) {
+                    placeInfo.venue = {};
+                    placeInfo.venue.name = first_item.venue.name;
+                    placeInfo.venue.url = first_item.venue.url;
+                    placeInfo.venue.rating = first_item.venue.rating;
+                    placeInfo.venue.ratingColor = first_item.venue.ratingColor;
+
+                    if(first_item.venue.featuredPhotos && first_item.venue.featuredPhotos.items 
+                        && first_item.venue.featuredPhotos.items.length > 0) {
+                            placeInfo.venue.photo = {};
+                            placeInfo.venue.photo.url = 
+                                first_item.venue.featuredPhotos.items[0].prefix +
+                                first_item.venue.featuredPhotos.items[0].width + "x"
+                                first_item.venue.featuredPhotos.items[0].height +
+                                first_item.venue.featuredPhotos.items[0].suffix;
+                                if(first_item.venue.featuredPhotos.items[0].user) {
+                                    placeInfo.venue.photo.user =                                         
+                                        first_item.venue.featuredPhotos.items[0].user.firstName + " " +
+                                        first_item.venue.featuredPhotos.items[0].user.lastName;
+                                }
+                                
+                    }
+                }
+                place.placeFourSquareInfo(placeInfo);
+            }
+
+        }).
+        catch((error) => {
+            console.log(error);
+        });
+
+}
 
 /**
  * Description: filter markers on the map based on 
