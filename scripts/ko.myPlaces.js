@@ -94,6 +94,9 @@ function PlacesViewModel() {
     let self = this;
     self.filterText = ko.observable("");
     self.navHidden = ko.observable(true);
+    // Observe the currently selected place
+    self.selectedPlace = ko.observable({});
+
 
     /**
      * Description: Read places array & create markers on the map
@@ -125,8 +128,14 @@ function PlacesViewModel() {
                 marker.setAnimation(null);
             }, 2000);
             map.setCenter({ lat: this.position.lat(), lng: this.position.lng() });
-
-            loadInfoWindow(this);
+            // Search for the marker place & set it as selected
+            let place = self.getMarkerPlace(this);
+            if (place) {
+                self.selectedPlace(place);
+                loadInfoWindow(this);
+            } else {
+                console.log('Error loading a place for the clicked marker');
+            }
         });
 
         myMarkers.push(marker);
@@ -134,8 +143,11 @@ function PlacesViewModel() {
         return marker;
     }
 
+
+
     // Initial load to myPlaces
     self.myPlaces = ko.observableArray(loadPlacesToPlacesModelArray());
+
 
     // Initial Load Place FourSquare info
     self.myPlaces().forEach((place) => {
@@ -144,9 +156,19 @@ function PlacesViewModel() {
     });
 
 
-    // Observe the currently selected place
-    self.selectedPlace = ko.observable();
-
+    /**
+     * Description: Get the place object based on the given marker
+     */
+    self.getMarkerPlace = function (marker) {
+        let foundPlace;
+        self.myPlaces().forEach((place) => {
+            if (marker.position.lat() === place.location().lat()
+                && marker.position.lng() === place.location().lng()) {
+                    foundPlace = place;          
+            }
+        });
+        return foundPlace;
+    }
 
 
 
@@ -157,14 +179,6 @@ function PlacesViewModel() {
         (self.navHidden()) ? self.navHidden(false) : self.navHidden(true);
     }
 
-    /**
-     * Open FourSquare Modal window loaded with the selected place info
-     */
-    self.loadFourSquareData = function () {
-        //TODO fix this loading data returns undefined
-        // self.selectedPlace().placeFourSquareInfo(loadFourSquarePlaceInfo(self.selectedPlace()));        
-        self.selectedPlace().placeInfoVisible(true);
-    }
 
     /**
      * Description: When user filters on places
@@ -215,16 +229,18 @@ function PlacesViewModel() {
      * - Display Foursquare info related to the selected place
      */
     self.triggerPlaceClickActions = function () {
-
-        map.setCenter({ lat: this.marker.position.lat(), lng: this.marker.position.lng() });
-        map.setZoom(18);
-        loadInfoWindow(this.marker);
+        self.selectedPlace(this);
 
         self.myPlaces().forEach((place) => {
             place.selectedClassName(false);
         });
-        self.selectedPlace(this);
+
         this.selectedClassName(true);
+
+        map.setCenter({ lat: this.marker.position.lat(), lng: this.marker.position.lng() });
+        map.setZoom(18);
+
+        loadInfoWindow(this.marker);
     }
 }
 
@@ -330,22 +346,11 @@ function loadInfoWindow(marker) {
 
 
 /**
- * Description: Get the place object based on the given marker
- */
-function getMarkerPlace(marker) {
-    oldCairoPlaces.forEach((place) => {
-        if (marker.position.lat() === place.location().lat()
-            && marker.position.lng() === place.location().lng()) {
-            return place;
-        }
-    });
-}
-
-/**
  * Description: Get Foursquare text & photos for the given marker
  * https://api.foursquare.com/v2/venues/explore?client_id=RDOSYH0CG0SB2JP25AUKS5OJOUTYWGLJVPAF00GCRB01F5R5&client_secret=YDBA2IU3ZLW2HGH3EXZS1BXNVYPROWP40BQWTXGUCDYNJD3G&v=20170801&ll=30.0058,31.230999999999995
  */
 function loadFourSquarePlaceInfo(place) {
+    let placeInfo = {};
     fetch(`${FS_LOCATION_SEARCH_URL_BASE}${place.marker.position.lat()},${place.marker.position.lng()}`).
         then((response) => {
             if (response.ok) {
@@ -355,23 +360,22 @@ function loadFourSquarePlaceInfo(place) {
             }
         }).then((response) => {
             let fs_response = response.response;
-            let placeInfo = {};
+
             if (fs_response.groups && fs_response.groups.length > 0
                 && fs_response.groups[0].items && fs_response.groups[0].items.length > 0) {
 
                 let first_item = fs_response.groups[0].items[0];
                 if (first_item.tips && first_item.tips.length > 0) {
-                    placeInfo.quote = {};
                     let qoute = {};
-                    quote.text = first_item.tips[0].text;
-                    if (first_item.tips[0].user) {                        
+                    qoute.text = first_item.tips[0].text;
+                    if (first_item.tips[0].user) {
                         qoute.user
                             = `${first_item.tips[0].user.firstName} ${first_item.tips[0].user.lastName}`;
                     }
-                    placeInfo.quote = qoute;
+                    placeInfo.qoute = qoute;
                 }
 
-                if (first_item.venue && first_item.venue.length > 0) {
+                if (first_item.venue) {
                     placeInfo.venue = {};
                     placeInfo.venue.name = first_item.venue.name;
                     placeInfo.venue.url = first_item.venue.url;
@@ -394,13 +398,13 @@ function loadFourSquarePlaceInfo(place) {
 
                     }
                 }
-                place.placeFourSquareInfo(placeInfo);
-            }
 
+            }
         }).
         catch((error) => {
             console.log(error);
         });
+    return placeInfo;
 
 }
 

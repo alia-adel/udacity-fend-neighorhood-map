@@ -42,12 +42,12 @@
                     <h3 class="brand-name">Foursquare</h3>
                 </div>
                 <div class="modal-body">
-                    <!-- <blockquote bind-data="text: $root.selectedPlace.placeInfo.qoute.text"></blockquote> -->                    
-                    <blockquote bind-data="text: $root.selectedPlace.name"></blockquote>
+                    <!-- <p data-bind="text: $root.selectedPlace().name"></p> -->
+                    <blockquote data-bind="text: $root.selectedPlace().placeFourSquareInfo().qoute.text"></blockquote>
+                    <!-- ___ <span data-bind="text: $root.selectedPlace().placeFourSquareInfo().qoute.user"></span> -->
                     <hr>
                     <figure>
-                        <!-- <img 
-                                    data-bind="attr: {src: $root.selectedPlace.placeInfo.photo.url, alt: $root.selectedPlace.name}"/> -->
+                        <img data-bind="attr: {src: $root.selectedPlace().placeFourSquareInfo().photo.url, alt: $root.selectedPlace().name}"/>
                     </figure>
                 </div>
             </div>
