@@ -74,22 +74,18 @@ var myMarkers = [];
  * Description: Place model
  */
 function Place(name = 'UNKNOWN', place = undefined) {
-    let self = this;    
+    let self = this;
     self.name = name;
     self.place = place
     self.location = ko.computed(function () {
         return self.place.geometry.location;
-    }, self);        
-    self.marker = ko.computed(function () {
-        return createPlaceMarker(
-            self.name, self.location().lat(), self.location().lng());
     }, self);
     self.selectedClassName = ko.observable(false);
     self.placeInfoVisible = ko.observable(false);
     // Foursquare data
     self.placeFourSquareInfo = ko.observable({});
 }
- 
+
 
 /**
  * Description: Map MVVM
@@ -99,11 +95,60 @@ function PlacesViewModel() {
     self.filterText = ko.observable("");
     self.navHidden = ko.observable(true);
 
+    /**
+     * Description: Read places array & create markers on the map
+     */
+    self.createPlaceMarker = function (title, lat, lng) {
+        let marker, infowindow;
+
+        var redStar = {
+            path: 'M 125,5 155,90 245,90 175,145 200,230 125,180 50,230 75,145 5,90 95,90 z',
+            fillColor: 'red',
+            fillOpacity: 1,
+            scale: 0.1,
+            strokeColor: 'red',
+            strokeWeight: 1
+        };
+
+        // Create marker
+        marker = new google.maps.Marker({
+            position: { lat, lng },
+            map: map,
+            // icon: redStar,
+            animation: google.maps.Animation.DROP,
+            title: title
+        });
+
+        marker.addListener('click', function () {
+            this.setAnimation(google.maps.Animation.BOUNCE);
+            setTimeout(() => {
+                marker.setAnimation(null);
+            }, 2000);
+            map.setCenter({ lat: this.position.lat(), lng: this.position.lng() });
+
+            loadInfoWindow(this);
+        });
+
+        myMarkers.push(marker);
+
+        return marker;
+    }
+
     // Initial load to myPlaces
     self.myPlaces = ko.observableArray(loadPlacesToPlacesModelArray());
 
+    // Initial Load Place FourSquare info
+    self.myPlaces().forEach((place) => {
+        place.marker = self.createPlaceMarker(place.name, place.location().lat(), place.location().lng());
+        place.placeFourSquareInfo(loadFourSquarePlaceInfo(place));
+    });
+
+
     // Observe the currently selected place
     self.selectedPlace = ko.observable();
+
+
+
 
     /**
      * Description: Change navifation visibility status
@@ -115,7 +160,7 @@ function PlacesViewModel() {
     /**
      * Open FourSquare Modal window loaded with the selected place info
      */
-    self.loadFourSquareData = function() {
+    self.loadFourSquareData = function () {
         //TODO fix this loading data returns undefined
         // self.selectedPlace().placeFourSquareInfo(loadFourSquarePlaceInfo(self.selectedPlace()));        
         self.selectedPlace().placeInfoVisible(true);
@@ -170,16 +215,16 @@ function PlacesViewModel() {
      * - Display Foursquare info related to the selected place
      */
     self.triggerPlaceClickActions = function () {
-        
-        map.setCenter({ lat: this.marker().position.lat(), lng: this.marker().position.lng() });
+
+        map.setCenter({ lat: this.marker.position.lat(), lng: this.marker.position.lng() });
         map.setZoom(18);
-        loadInfoWindow(this.marker());
+        loadInfoWindow(this.marker);
 
         self.myPlaces().forEach((place) => {
             place.selectedClassName(false);
         });
         self.selectedPlace(this);
-        this.selectedClassName(true);        
+        this.selectedClassName(true);
     }
 }
 
@@ -245,7 +290,7 @@ function geoCodePlaces() {
             throw Error(`Geocode was not successful for the following reason: ${result}`);
         }
     }).catch((error) => {
-        console.log(`Error while trying to Geocode places with error code: ${error}`);
+        console.log(`Error: ${error}`);
     });
 
 }
@@ -267,46 +312,6 @@ function loadPlacesToPlacesModelArray() {
 
 
 /**
- * Description: Read places array & create markers on the map
- */
-function createPlaceMarker(title, lat, lng) {
-    let marker, infowindow;
-
-    var redStar = {
-        path: 'M 125,5 155,90 245,90 175,145 200,230 125,180 50,230 75,145 5,90 95,90 z',
-        fillColor: 'red',
-        fillOpacity: 1,
-        scale: 0.1,
-        strokeColor: 'red',
-        strokeWeight: 1
-    };
-
-    // Create marker
-    marker = new google.maps.Marker({
-        position: { lat, lng },
-        map: map,
-        // icon: redStar,
-        animation: google.maps.Animation.DROP,
-        title: title
-    });
-
-    marker.addListener('click', function () {
-        this.setAnimation(google.maps.Animation.BOUNCE);
-        setTimeout(() => {
-            marker.setAnimation(null);
-        }, 2000);
-        map.setCenter({ lat: this.position.lat(), lng: this.position.lng() });
-
-        loadInfoWindow(this);
-    });
-
-    myMarkers.push(marker);
-
-    return marker;
-}
-
-
-/**
  * Description: Formulates the info Window content
  * & opens it
  * @param 
@@ -314,12 +319,7 @@ function createPlaceMarker(title, lat, lng) {
  */
 function loadInfoWindow(marker) {
     let content = $('#info-window').html();
-    
-    // `<div class="infoWindow">
-    //     <h3>${marker.title}</h3>
-    //     <span>Lat: ${marker.position.lat()}</span>
-    //     <span>Lng: ${marker.position.lng()}</span>
-    // </div>"`;
+
     let infowindow = new google.maps.InfoWindow({
         content: content,
         maxWidth: 300
@@ -328,12 +328,25 @@ function loadInfoWindow(marker) {
     infowindow.open(map, marker);
 }
 
+
+/**
+ * Description: Get the place object based on the given marker
+ */
+function getMarkerPlace(marker) {
+    oldCairoPlaces.forEach((place) => {
+        if (marker.position.lat() === place.location().lat()
+            && marker.position.lng() === place.location().lng()) {
+            return place;
+        }
+    });
+}
+
 /**
  * Description: Get Foursquare text & photos for the given marker
  * https://api.foursquare.com/v2/venues/explore?client_id=RDOSYH0CG0SB2JP25AUKS5OJOUTYWGLJVPAF00GCRB01F5R5&client_secret=YDBA2IU3ZLW2HGH3EXZS1BXNVYPROWP40BQWTXGUCDYNJD3G&v=20170801&ll=30.0058,31.230999999999995
  */
 function loadFourSquarePlaceInfo(place) {
-    fetch(`${FS_LOCATION_SEARCH_URL_BASE}${place.marker().position.lat()},${place.marker().position.lng()}`).
+    fetch(`${FS_LOCATION_SEARCH_URL_BASE}${place.marker.position.lat()},${place.marker.position.lng()}`).
         then((response) => {
             if (response.ok) {
                 return response.json();
@@ -347,36 +360,38 @@ function loadFourSquarePlaceInfo(place) {
                 && fs_response.groups[0].items && fs_response.groups[0].items.length > 0) {
 
                 let first_item = fs_response.groups[0].items[0];
-                if(first_item.tips && first_item.tips.length > 0) {
+                if (first_item.tips && first_item.tips.length > 0) {
                     placeInfo.quote = {};
-                    placeInfo.quote.text = first_item.tips.text;
-                    if(first_item.tips.user) {
-                        placeInfo.qoute.user 
-                        = `${first_item.tips.user.firstName} ${first_item.tips.user.lastName}`;
+                    let qoute = {};
+                    quote.text = first_item.tips[0].text;
+                    if (first_item.tips[0].user) {                        
+                        qoute.user
+                            = `${first_item.tips[0].user.firstName} ${first_item.tips[0].user.lastName}`;
                     }
+                    placeInfo.quote = qoute;
                 }
 
-                if(first_item.venue && first_item.venue.length > 0) {
+                if (first_item.venue && first_item.venue.length > 0) {
                     placeInfo.venue = {};
                     placeInfo.venue.name = first_item.venue.name;
                     placeInfo.venue.url = first_item.venue.url;
                     placeInfo.venue.rating = first_item.venue.rating;
                     placeInfo.venue.ratingColor = first_item.venue.ratingColor;
 
-                    if(first_item.venue.featuredPhotos && first_item.venue.featuredPhotos.items 
+                    if (first_item.venue.featuredPhotos && first_item.venue.featuredPhotos.items
                         && first_item.venue.featuredPhotos.items.length > 0) {
-                            placeInfo.venue.photo = {};
-                            placeInfo.venue.photo.url = 
-                                first_item.venue.featuredPhotos.items[0].prefix +
-                                first_item.venue.featuredPhotos.items[0].width + "x"
-                                first_item.venue.featuredPhotos.items[0].height +
-                                first_item.venue.featuredPhotos.items[0].suffix;
-                                if(first_item.venue.featuredPhotos.items[0].user) {
-                                    placeInfo.venue.photo.user =                                         
-                                        first_item.venue.featuredPhotos.items[0].user.firstName + " " +
-                                        first_item.venue.featuredPhotos.items[0].user.lastName;
-                                }
-                                
+                        placeInfo.venue.photo = {};
+                        placeInfo.venue.photo.url =
+                            first_item.venue.featuredPhotos.items[0].prefix +
+                            first_item.venue.featuredPhotos.items[0].width + "x"
+                        first_item.venue.featuredPhotos.items[0].height +
+                            first_item.venue.featuredPhotos.items[0].suffix;
+                        if (first_item.venue.featuredPhotos.items[0].user) {
+                            placeInfo.venue.photo.user =
+                                first_item.venue.featuredPhotos.items[0].user.firstName + " " +
+                                first_item.venue.featuredPhotos.items[0].user.lastName;
+                        }
+
                     }
                 }
                 place.placeFourSquareInfo(placeInfo);
