@@ -81,7 +81,6 @@ function Place(name = 'UNKNOWN', place = undefined) {
         return self.place.geometry.location;
     }, self);
     self.selectedClassName = ko.observable(false);
-    self.placeInfoVisible = ko.observable(false);
     // Foursquare data
     self.placeFourSquareInfo = ko.observable({});
 }
