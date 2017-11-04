@@ -1,9 +1,45 @@
-
-
-// https://api.foursquare.com/v2/venues/explore?client_id=RDOSYH0CG0SB2JP25AUKS5OJOUTYWGLJVPAF00GCRB01F5R5&client_secret=YDBA2IU3ZLW2HGH3EXZS1BXNVYPROWP40BQWTXGUCDYNJD3G&ll=30.029865,31.2589168&v=20170801
+/**
+ * Author: Alia.Adel
+ * GitHub: https://github.com/alia-adel/
+ * Description: Udacity front end nanodegree neighborhood project
+ * Date: November 2017
+ * 
+ * ### TABLE OF CONTENTS ###
+ * ==============================================================
+ * 
+ * ## CONSTANTS/VARIABLES ##
+ * ==========================
+ * - FourSquare API IDs
+ * - FourSquare API URL
+ * - Application saved places
+ * 
+ * ## KNOCKOUT MVVM ##
+ * ===================
+ * - "Place" {function} --> Define knockout Model
+ *      - The model holds data for the place 
+ * 
+ * - "PlacesViewModel" {function} --> Define knockout View Model
+ * - 
+ * ## SUPPORTING FUNCTIONS ##
+ * ==========================
+ * - "initMap" {function}
+ *  1- Initialize the map to the center of old Cairo
+ *  2- calls "geoCodePlaces" to geocode "oldCairoPlaces" places
+ * 
+ * - "geoCodePlaces" {function}
+ *  1- Loops on "oldCairoPlaces" places inside a Promise
+ *  2- After Promise id done, kockout binds a new "PlacesViewModel" view model
+ * 
+ * - "loadPlacesToPlacesModelArray" {function} 
+ *  1- Casts "oldCairoPlaces" into a "Place" model array & returns it
+ * 
+ * - "createPlaceMarker" {function}: params {title, lat, lng}
+ *  1- Creates a marker on the map with the given parameters
+ * 
+ */
 
 /**
- * ##### Variables section #####
+ * ## CONSTANTS/VARIABLES ##
  */
 
 // Foursquare api authentication
@@ -11,7 +47,25 @@ const FS_CLIENT_ID = "RDOSYH0CG0SB2JP25AUKS5OJOUTYWGLJVPAF00GCRB01F5R5";
 const FS_CLIENT_SECRET = "YDBA2IU3ZLW2HGH3EXZS1BXNVYPROWP40BQWTXGUCDYNJD3G";
 const FS_LOCATION_SEARCH_URL_BASE
     = `https://api.foursquare.com/v2/venues/explore?client_id=${FS_CLIENT_ID}&client_secret=${FS_CLIENT_SECRET}&v=20170801&ll=`;
-
+let oldCairoPlaces = [{
+    "name": "Salah El Din Al Ayouby Citadel"
+}, {
+    "name": "EL Moez Mosque"
+}, {
+    "name": "Wekalet El Ghoury"
+}, {
+    "name": "Al-Rifa'i Mosque"
+}, {
+    "name": "Khan el-Khalili"
+}, {
+    "name": "Masjid Amr Ibn El Aas"
+}, {
+    "name": "Ben Ezra Synagogue"
+}, {
+    "name": "The Hanging Church"
+}, {
+    "name": "Coptic Museum"
+}];
 
 var map;
 var myMarkers = [];
@@ -19,10 +73,14 @@ var myMarkers = [];
 /**
  * Description: My Places model
  */
-function MyPlace(name = 'UNKNOWN', marker) {
+function Place(name = 'UNKNOWN', location) {
     let self = this;
     self.name = name;
-    self.marker = marker;
+    self.location = ko.observable(location);
+    self.marker = ko.computed(function () {
+        return createPlaceMarker(
+            self.name, self.location().lat(), self.location().lng());
+    }, self);
     self.selectedClassName = ko.observable(false);
     self.placeInfoVisible = ko.observable(false);
     self.placeInfo = ko.observable("");
@@ -32,13 +90,13 @@ function MyPlace(name = 'UNKNOWN', marker) {
 /**
  * Description: Map MVVM
  */
-function MyPlacesViewModel() {
+function PlacesViewModel() {
     let self = this;
     self.filterText = ko.observable("");
     self.navHidden = ko.observable(true);
 
     // Initial load to myPlaces
-    self.myPlaces = ko.observableArray(loadPlacesToModelArray());
+    self.myPlaces = ko.observableArray(loadPlacesToPlacesModelArray());
 
     /**
      * Description: Change navifation visibility status
@@ -54,7 +112,7 @@ function MyPlacesViewModel() {
      */
     self.updatePlaces = function () {
         // Make sure to reload all places
-        let tempPlaces = loadPlacesToModelArray();
+        let tempPlaces = loadPlacesToPlacesModelArray();
         let updatePlaces = [];
 
         // loop on places to see if any of the names matches partially the filter text
@@ -64,10 +122,10 @@ function MyPlacesViewModel() {
                 // In case place matches, keep it in a side array
                 updatePlaces.push(tempPlaces[i]);
                 // In case the place matches re-add the marker on the map if not there
-                updateMarker(tempPlaces[i].marker, true);
+                updateMarker(tempPlaces[i].marker(), true);
             } else {
                 // In case the place doesnt match remove its marker from the map
-                updateMarker(tempPlaces[i].marker, false);
+                updateMarker(tempPlaces[i].marker(), false);
             }
 
             // Update myPlaces observable array with the update places matching the filter text
@@ -81,7 +139,7 @@ function MyPlacesViewModel() {
      * Description: Resets back list of places & markers
      */
     self.resetPlaces = function () {
-        self.myPlaces(loadPlacesToModelArray());
+        self.myPlaces(loadPlacesToPlacesModelArray());
         self.filterText("");
         myMarkers.forEach((marker) => {
             createMyPlacesMarkers(marker, true);
@@ -91,17 +149,20 @@ function MyPlacesViewModel() {
     /**
      * Description: One function to trigger all actions needed when clicking on a place
      * in the list, i.e.:
-     * - Bounce the marker on the map & open info window
+     * - Set the map center to the place's position
      * - set the list item as selected
+     * - Display Foursquare info related to the selected place
      */
     self.triggerPlaceClickActions = function () {
-        bounceMarker(this.marker);
+        map.setCenter({ lat: this.marker().position.lat(), lng: this.marker().position.lng() });
+        map.setZoom(18);
 
         self.myPlaces().forEach((place) => {
             place.selectedClassName(false);
         });
 
         this.selectedClassName(true);
+
         this.placeInfoVisible(true);
         this.placeInfo(getFourSquarePlaceInfo(this));
     }
@@ -116,14 +177,12 @@ function MyPlacesViewModel() {
  * Description: Get Foursquare text & photos for the given marker
  */
 function getFourSquarePlaceInfo(place) {
-    fetch(`${FS_LOCATION_SEARCH_URL_BASE}${place.marker.position.lat()},${place.marker.position.lng()}`).
+    fetch(`${FS_LOCATION_SEARCH_URL_BASE}${place.marker().position.lat()},${place.marker().position.lng()}`).
         then((response) => {
-            console.log(response);
             if (response.ok) {
                 return response.json();
             } else {
-                console.log(`Error occured 
-                ${response.status}`);
+                console.log(`Error occured with status: ${response.status}`);
             }
         }).then((response) => {
             let fs_response = response.response;
@@ -149,17 +208,78 @@ function getFourSquarePlaceInfo(place) {
 function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: 30.040076, lng: 31.265423 },
+        streetViewControl: true,
         zoom: 15
     });
 
-    // Bind MVVM
-    ko.applyBindings(new MyPlacesViewModel());
+    // GeoCode places
+    geoCodePlaces();
 }
+
+
+/**
+ * Description: Geocoding places using Google JavaScript API documentation examples
+ * https://developers.google.com/maps/documentation/javascript/examples/geocoding-simple
+ *          1- Constructs a Google Geocoder object
+ *          2- Create a Promise to track when all places are geocoded
+ *              - Loop on "oldCairoPlaces" variable & geocode each of its places
+ *              - call Promise.resolve() when all places were geocoded
+ *          3- Once resolved create a new knouckout model view & bind it
+ */
+function geoCodePlaces() {
+    var geocoder = new google.maps.Geocoder();
+
+    new Promise((resolve, reject) => {
+        let counter = oldCairoPlaces.length;
+        oldCairoPlaces.forEach((place) => {
+            geocoder.geocode(
+                { 'address': place.name },
+                function (results, status) {
+                    if (status === 'OK') {
+                        place.location = results[0].geometry.location;
+                        counter--;
+                        if (counter === 0) {
+                            resolve('OK');
+                        }
+                    } else {
+                        console.log(`Geocode was not successful for ${place.name} for the following reason: ${status}`);
+                    }
+                }
+            );
+        });
+    }).then((result) => {
+        if (result === 'OK') {
+            // Once the places lat/lng are retrieved bind MVVM
+            ko.applyBindings(new PlacesViewModel());
+        } else {
+            throw Error(`Geocode was not successful for the following reason: ${result}`);
+        }
+    }).catch((error) => {
+        console.log(`Error while trying to Geocode places with error code: ${error}`);
+    });
+
+}
+
+
+/**
+ * Desrciption: Casts "oldCairoPlaces" into a "Place" array & returns it
+ * @returns {Array} - "Place" array
+ */
+function loadPlacesToPlacesModelArray() {
+    // Editable data
+    let placesTemp = [];
+    oldCairoPlaces.forEach((place) => {
+        placesTemp.push(new Place(place.name, place.location));
+    });
+
+    return placesTemp;
+}
+
 
 /**
  * Description: Read places array & create markers on the map
  */
-function createMyPlaceMarker(title, lat, lng) {
+function createPlaceMarker(title, lat, lng) {
     let marker, infowindow;
 
     var redStar = {
@@ -181,7 +301,12 @@ function createMyPlaceMarker(title, lat, lng) {
     });
 
     marker.addListener('click', function () {
-        bounceMarker(this);
+        this.setAnimation(google.maps.Animation.BOUNCE);
+        setTimeout(() => {
+            marker.setAnimation(null);
+        }, 2000);
+        map.setCenter({ lat: this.position.lat(), lng: this.position.lng() });
+
         let infowindow = new google.maps.InfoWindow({
             content: createInfoWindow(this)
         });
@@ -193,32 +318,7 @@ function createMyPlaceMarker(title, lat, lng) {
     return marker;
 }
 
-/**
- * Description: let marker bounce
- */
-function bounceMarker(marker) {
-    marker.setAnimation(google.maps.Animation.BOUNCE);
-    setTimeout(() => {
-        marker.setAnimation(null);
-    }, 2000);
-    map.setCenter({ lat: marker.position.lat(), lng: marker.position.lng() });
-    map.setZoom(18);
-}
 
-/**
- * Description: handle on click event on each marker.
- * When clicking the marker the following will happen:
- * - The marker will bounce
- * - The Info Window will open
- */
-function markerOnClick() {
-    if (this) {
-        this.setAnimation(google.maps.Animation.BOUNCE);
-        setTimeout(() => {
-            this.setAnimation(null);
-        }, 2000);
-    }
-}
 
 
 /**
@@ -235,21 +335,6 @@ function createInfoWindow(marker) {
 }
 
 
-/**
- * Desrciption: Reads places array & returns
- * a new array filled with "MyPlace" models.
- */
-function loadPlacesToModelArray() {
-    // Editable data
-    let myPlacesTemp = [];
-    myMarkers = [];
-    places.forEach((place) => {
-        myPlacesTemp.push(new MyPlace(place.name,
-            createMyPlaceMarker(place.name, place.lat, place.lng)));
-    });
-
-    return myPlacesTemp;
-}
 
 /**
  * Description: filter markers on the map based on 

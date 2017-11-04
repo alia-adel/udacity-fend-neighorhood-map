@@ -138,8 +138,8 @@ header h2 {
 .infoWindow {
     display: flex;
     flex-direction: column;
-    width: 150px;
-    height: 100px;
+    width: 200px;
+    height: 200px;
     overflow: auto;
 }
 
