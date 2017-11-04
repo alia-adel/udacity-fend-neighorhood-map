@@ -197,10 +197,10 @@ function PlacesViewModel() {
                 // In case place matches, keep it in a side array
                 updatePlaces.push(tempPlaces[i]);
                 // In case the place matches re-add the marker on the map if not there
-                updateMarker(tempPlaces[i].marker(), true);
+                updateMarker(tempPlaces[i].marker, true);
             } else {
                 // In case the place doesnt match remove its marker from the map
-                updateMarker(tempPlaces[i].marker(), false);
+                updateMarker(tempPlaces[i].marker, false);
             }
 
             // Update myPlaces observable array with the update places matching the filter text
