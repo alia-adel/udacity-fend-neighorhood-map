@@ -351,7 +351,7 @@ function loadInfoWindow(marker) {
 
 /**
  * Description: Get Foursquare text & photos for the given marker
- * https://api.foursquare.com/v2/venues/explore?client_id=RDOSYH0CG0SB2JP25AUKS5OJOUTYWGLJVPAF00GCRB01F5R5&client_secret=YDBA2IU3ZLW2HGH3EXZS1BXNVYPROWP40BQWTXGUCDYNJD3G&v=20170801&ll=30.0058,31.230999999999995
+ * https://api.foursquare.com/v2/venues/explore?client_id=CLIENT_ID&client_secret=CLIENT_SECRET&v=20170801&ll=30.0058,31.230999999999995
  */
 //TODO handle all empty values when loading the object
 function loadFourSquarePlaceInfo(place) {
