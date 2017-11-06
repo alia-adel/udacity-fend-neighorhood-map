@@ -48,27 +48,42 @@ const FS_CLIENT_SECRET = "YDBA2IU3ZLW2HGH3EXZS1BXNVYPROWP40BQWTXGUCDYNJD3G";
 const FS_LOCATION_SEARCH_URL_BASE
     = `https://api.foursquare.com/v2/venues/explore?client_id=${FS_CLIENT_ID}&client_secret=${FS_CLIENT_SECRET}&v=20170801&radius=200&venuePhotos=1&sortByDistance=1&limit=1&ll=`;
 let oldCairoPlaces = [{
-    "name": "Salah El Din Al Ayouby Citadel"
-}, {
-    "name": "EL Moez Mosque"
-}, {
-    "name": "Wekalet El Ghoury"
-}, {
-    "name": "Al-Rifa'i Mosque"
-}, {
-    "name": "Khan el-Khalili"
-}, {
-    "name": "Masjid Amr Ibn El Aas"
-}, {
-    "name": "Ben Ezra Synagogue"
-}, {
-    "name": "The Hanging Church"
-}, {
-    "name": "Coptic Museum"
-}];
+        "name": "Salah El Din Al Ayouby Citadel"
+    }, {
+        "name": "EL Moez Mosque"
+    }, {
+        "name": "Wekalet El Ghoury"
+    }, {
+        "name": "Al-Rifa'i Mosque"
+    }, {
+        "name": "Masjid Amr Ibn El Aas"
+    }, {
+        "name": "Ben Ezra Synagogue"
+    }, {
+        "name": "The Hanging Church"
+    }, {
+        "name": "Coptic Museum"
+    }];
 
 var map;
-var myMarkers = [];
+let myMarkers = [];
+let fourSquareResEmpty = {
+    qoute: {
+        text: 'N/A',
+        user: 'N/A'
+    },
+    venue: {
+        name: 'N/A',
+        url: '',
+        rating: 'N/A',
+        ratingColor: 'N/A',
+        photo: {
+            url: '',
+            user: 'N/A'
+        }
+    }
+};
+
 
 /**
  * Description: Place model
@@ -82,7 +97,7 @@ function Place(name = 'UNKNOWN', place = undefined) {
     }, self);
     self.selectedClassName = ko.observable(false);
     // Foursquare data
-    self.placeFourSquareInfo = ko.observable({});
+    self.placeFourSquareInfo = ko.observable();
 }
 
 
@@ -94,7 +109,7 @@ function PlacesViewModel() {
     self.filterText = ko.observable("");
     self.navHidden = ko.observable(true);
     // Observe the currently selected place
-    self.selectedPlace = ko.observable({});
+    self.selectedPlace = ko.observable();
 
 
     /**
@@ -164,7 +179,7 @@ function PlacesViewModel() {
         self.myPlaces().forEach((place) => {
             if (marker.position.lat() === place.location().lat()
                 && marker.position.lng() === place.location().lng()) {
-                    foundPlace = place;          
+                foundPlace = place;
             }
         });
         return foundPlace;
@@ -234,6 +249,14 @@ function PlacesViewModel() {
      */
     self.triggerPlaceClickActions = function () {
         self.selectedPlace(this);
+        self.selectedPlace().marker.setAnimation(google.maps.Animation.BOUNCE);
+        setTimeout(() => {
+            self.selectedPlace().marker.setAnimation(null);
+        }, 2000);
+        map.setCenter({ lat: this.marker.position.lat(), lng: this.marker.position.lng() });
+        map.setZoom(20);
+
+        loadInfoWindow(this.marker);
 
         self.myPlaces().forEach((place) => {
             place.selectedClassName(false);
@@ -241,10 +264,7 @@ function PlacesViewModel() {
 
         this.selectedClassName(true);
 
-        map.setCenter({ lat: this.marker.position.lat(), lng: this.marker.position.lng() });
-        map.setZoom(18);
 
-        loadInfoWindow(this.marker);
     }
 }
 
@@ -287,10 +307,22 @@ function geoCodePlaces() {
     new Promise((resolve, reject) => {
         let counter = oldCairoPlaces.length;
         oldCairoPlaces.forEach((place) => {
-            geocoder.geocode(
-                { 'address': place.name },
+            geocoder.geocode({
+                address: place.name,
+                //TODO: limit search to area
+                // bounds: {
+                //     northeast: {
+                //         lat: 30.1106024,
+                //         lng: 31.3019729
+                //     },
+                //     southwest: {
+                //         lat: 30.0083745,
+                //         lng: 31.2149558
+                //     }
+                // }
+            },
                 function (results, status) {
-                    if (status === 'OK') {
+                    if (status === google.maps.GeocoderStatus.OK) {
                         place.place = results[0];
                         counter--;
                         if (counter === 0) {
@@ -312,7 +344,6 @@ function geoCodePlaces() {
     }).catch((error) => {
         console.log(`Error: ${error}`);
     });
-
 }
 
 
@@ -342,7 +373,7 @@ function loadInfoWindow(marker) {
 
     let infowindow = new google.maps.InfoWindow({
         content: content,
-        maxWidth: 300
+        maxWidth: 400
     });
 
     infowindow.open(map, marker);
@@ -354,8 +385,9 @@ function loadInfoWindow(marker) {
  * https://api.foursquare.com/v2/venues/explore?client_id=CLIENT_ID&client_secret=CLIENT_SECRET&v=20170801&ll=30.0058,31.230999999999995
  */
 //TODO handle all empty values when loading the object
+// Fix the case where no results are returned
+// Fix the presistence foursquare object (it always take the last one)
 function loadFourSquarePlaceInfo(place) {
-    let placeInfo = {};
     fetch(`${FS_LOCATION_SEARCH_URL_BASE}${place.marker.position.lat()},${place.marker.position.lng()}`).
         then((response) => {
             if (response.ok) {
@@ -365,51 +397,59 @@ function loadFourSquarePlaceInfo(place) {
             }
         }).then((response) => {
             let fs_response = response.response;
+            let tempFSObj = fourSquareResEmpty;
+            let first_item = fs_response.groups[0].items[0];
 
             if (fs_response.groups && fs_response.groups.length > 0
                 && fs_response.groups[0].items && fs_response.groups[0].items.length > 0) {
-
-                let first_item = fs_response.groups[0].items[0];
                 if (first_item.tips && first_item.tips.length > 0) {
-                    let qoute = {};
-                    qoute.text = first_item.tips[0].text;
-                    if (first_item.tips[0].user) {
-                        qoute.user
+                    tempFSObj.qoute = {};
+                    tempFSObj.qoute.text = first_item.tips[0].text.trim();
+                    if (first_item.tips[0].user && first_item.tips[0].user.firstName) {
+                        tempFSObj.qoute.user = {};
+                        tempFSObj.qoute.user
                             = `${first_item.tips[0].user.firstName} ${first_item.tips[0].user.lastName}`;
                     }
-                    placeInfo.qoute = qoute;
                 }
 
                 if (first_item.venue) {
-                    placeInfo.venue = {};
-                    placeInfo.venue.name = first_item.venue.name;
-                    placeInfo.venue.url = first_item.venue.url;
-                    placeInfo.venue.rating = first_item.venue.rating;
-                    placeInfo.venue.ratingColor = first_item.venue.ratingColor;
+                    tempFSObj.venue = {};
+                    if (first_item.venue.name) {
+                        tempFSObj.venue.name = first_item.venue.name;
+                    }
+                    if (first_item.venue.url) {
+                        tempFSObj.venue.url = first_item.venue.url;
+                    }
+                    if (first_item.venue.rating) {
+                        tempFSObj.venue.rating = first_item.venue.rating;
+                    }
+                    if (first_item.venue.ratingColor) {
+                        tempFSObj.venue.ratingColor = first_item.venue.ratingColor;
+                    }
 
                     if (first_item.venue.featuredPhotos && first_item.venue.featuredPhotos.items
                         && first_item.venue.featuredPhotos.items.length > 0) {
-                        placeInfo.venue.photo = {};
-                        placeInfo.venue.photo.url =
-                            first_item.venue.featuredPhotos.items[0].prefix +
-                            first_item.venue.featuredPhotos.items[0].width + "x"
-                        first_item.venue.featuredPhotos.items[0].height +
+                        tempFSObj.venue.photo = {};
+                        tempFSObj.venue.photo.url =
+                            first_item.venue.featuredPhotos.items[0].prefix + "width" +
+                            first_item.venue.featuredPhotos.items[0].width +
                             first_item.venue.featuredPhotos.items[0].suffix;
                         if (first_item.venue.featuredPhotos.items[0].user) {
-                            placeInfo.venue.photo.user =
+                            tempFSObj.venue.photo.user =
                                 first_item.venue.featuredPhotos.items[0].user.firstName + " " +
                                 first_item.venue.featuredPhotos.items[0].user.lastName;
                         }
 
                     }
                 }
-
             }
+            place.placeFourSquareInfo(tempFSObj);
         }).
         catch((error) => {
             console.log(error);
         });
-    return placeInfo;
+
+    return place;
 
 }
 

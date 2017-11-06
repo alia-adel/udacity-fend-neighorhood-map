@@ -37,18 +37,53 @@
         <!-- Markup data -->
         <div class="template">
             <div id="info-window">
-                <div class="modal-header">
-                    <i class="fa fa-foursquare fa-2x brand-icon" aria-hidden="true"></i>
-                    <h3 class="brand-name">Foursquare</h3>
-                </div>
-                <div class="modal-body">
-                    <strong><p data-bind="text: $root.selectedPlace().name"></p></strong>
-                    <q><blockquote data-bind="text: $root.selectedPlace().placeFourSquareInfo().qoute.text"></blockquote></q>
-                    ___ <span data-bind="text: $root.selectedPlace().placeFourSquareInfo().qoute.user"></span>
-                    <hr>
-                    <figure>
-                        <img data-bind="attr: {src: $root.selectedPlace().placeFourSquareInfo().photo.url, alt: $root.selectedPlace().name}"/>
-                    </figure>
+                <div id="info-window-content" data-bind="if: $root.selectedPlace()">
+                    <div class="modal-header">
+                        <strong>
+                            <p data-bind="text: $root.selectedPlace().name"></p>
+                        </strong>
+                    </div>
+                    <div class="modal-body" data-bind="if: $root.selectedPlace().placeFourSquareInfo()">
+                        <div class="fs-row fs-header ">
+                            <i class="fa fa-foursquare fa-2x brand-icon" aria-hidden="true"></i>
+                            <h3 class="brand-name">Foursquare Qoutes</h3>
+                        </div>
+
+                        <div class="fs-card" data-bind="if: $root.selectedPlace().placeFourSquareInfo().venue !== null">
+                            <div data-bind="if: $root.selectedPlace().placeFourSquareInfo().qoute !== null">
+                                <div class="fs-row">
+                                    <h4>User: </h4>
+                                    <span data-bind="text: $root.selectedPlace().placeFourSquareInfo().qoute.user"></span>
+                                </div>
+                                <div>
+                                    <q>
+                                        <blockquote data-bind="text: $root.selectedPlace().placeFourSquareInfo().qoute.text"></blockquote>
+                                    </q>
+                                </div>
+                            </div>
+                            <div class="fs-row" data-bind="if: $root.selectedPlace().placeFourSquareInfo().venue.name">
+                                <h4>Place name: </h4>
+                                <p data-bind="text: $root.selectedPlace().placeFourSquareInfo().venue.name"></p>
+                            </div>
+                            <div class="fs-row" data-bind="if: $root.selectedPlace().placeFourSquareInfo().venue.url">
+                                <h4>Place URL: </h4>
+                                <a data-bind="text: $root.selectedPlace().placeFourSquareInfo().venue.url, attr: {href: $root.selectedPlace().placeFourSquareInfo().venue.url}"
+                                    target="_blank">
+                                </a>
+                            </div>
+
+                            <div class="fs-row" data-bind="if: $root.selectedPlace().placeFourSquareInfo().venue.rating">
+                                <h4>Place Rating: </h4>
+                                <span class="venue-rating" data-bind="text: $root.selectedPlace().placeFourSquareInfo().venue.rating, style: {'background-color': '#' + $root.selectedPlace().placeFourSquareInfo().venue.ratingColor}"></span>
+                            </div>
+
+                            <figure data-bind="if: $root.selectedPlace().placeFourSquareInfo().venue.photo  !== null">
+                                <img class="venue-img" data-bind="attr: {src: $root.selectedPlace().placeFourSquareInfo().venue.photo.url, alt: $root.selectedPlace().name}"
+                                />
+                            </figure>
+
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
