@@ -50,39 +50,18 @@ const FS_LOCATION_SEARCH_URL_BASE
 let oldCairoPlaces = [{
         "name": "Salah El Din Al Ayouby Citadel"
     }, {
-        "name": "EL Moez Mosque"
+        "name": "Qalawun Complex"
     }, {
         "name": "Wekalet El Ghoury"
     }, {
-        "name": "Al-Rifa'i Mosque"
-    }, {
-        "name": "Masjid Amr Ibn El Aas"
-    }, {
-        "name": "Ben Ezra Synagogue"
-    }, {
-        "name": "The Hanging Church"
-    }, {
         "name": "Coptic Museum"
+    }, {
+        "name": "Sultan Hassan Mosque"
     }];
 
-var map;
+let map;
+let mapInitialPos = {lat: 30.0298604, lng: 31.261105499999985};
 let myMarkers = [];
-let fourSquareResEmpty = {
-    qoute: {
-        text: 'N/A',
-        user: 'N/A'
-    },
-    venue: {
-        name: 'N/A',
-        url: '',
-        rating: 'N/A',
-        ratingColor: 'N/A',
-        photo: {
-            url: '',
-            user: 'N/A'
-        }
-    }
-};
 
 
 /**
@@ -235,6 +214,8 @@ function PlacesViewModel() {
             updateMarker(marker, true);
         });
 
+        resetMapToPosition(mapInitialPos.lat, mapInitialPos.lng);
+
         self.myPlaces().forEach((place) => {
             place.selectedClassName(false);
         });
@@ -253,9 +234,8 @@ function PlacesViewModel() {
         setTimeout(() => {
             self.selectedPlace().marker.setAnimation(null);
         }, 2000);
-        map.setCenter({ lat: this.marker.position.lat(), lng: this.marker.position.lng() });
-        map.setZoom(20);
 
+        resetMapToPosition(this.marker.position.lat(), this.marker.position.lng());
         loadInfoWindow(this.marker);
 
         self.myPlaces().forEach((place) => {
@@ -284,6 +264,8 @@ function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: 30.040076, lng: 31.265423 },
         streetViewControl: true,
+        fullscreenControl: true,
+        scaleControl: true,
         zoom: 15
     });
 
@@ -291,6 +273,16 @@ function initMap() {
     geoCodePlaces();
 }
 
+/**
+ * Description: Resets the map position to the given latitude & longtitude
+ * 
+ * @param {float} lat 
+ * @param {float} lng 
+ */
+function resetMapToPosition(lat, lng){
+    map.setCenter({ lat: lat, lng: lng });
+    map.setZoom(15);
+}
 
 /**
  * Description: Geocoding places using Google JavaScript API documentation examples
@@ -308,18 +300,7 @@ function geoCodePlaces() {
         let counter = oldCairoPlaces.length;
         oldCairoPlaces.forEach((place) => {
             geocoder.geocode({
-                address: place.name,
-                //TODO: limit search to area
-                // bounds: {
-                //     northeast: {
-                //         lat: 30.1106024,
-                //         lng: 31.3019729
-                //     },
-                //     southwest: {
-                //         lat: 30.0083745,
-                //         lng: 31.2149558
-                //     }
-                // }
+                address: place.name
             },
                 function (results, status) {
                     if (status === google.maps.GeocoderStatus.OK) {
@@ -388,7 +369,7 @@ function loadInfoWindow(marker) {
 // Fix the case where no results are returned
 // Fix the presistence foursquare object (it always take the last one)
 function loadFourSquarePlaceInfo(place) {
-    fetch(`${FS_LOCATION_SEARCH_URL_BASE}${place.marker.position.lat()},${place.marker.position.lng()}`).
+    fetch(`${FS_LOCATION_SEARCH_URL_BASE}${place.location().lat()},${place.location().lng()}`).
         then((response) => {
             if (response.ok) {
                 return response.json();
@@ -396,22 +377,26 @@ function loadFourSquarePlaceInfo(place) {
                 console.log(`Error occured with status: ${response.status}`);
             }
         }).then((response) => {
-            let fs_response = response.response;
-            let tempFSObj = fourSquareResEmpty;
-            let first_item = fs_response.groups[0].items[0];
-
+            let fs_response = response.response;                  
+            // Checking 
             if (fs_response.groups && fs_response.groups.length > 0
                 && fs_response.groups[0].items && fs_response.groups[0].items.length > 0) {
+                let tempFSObj = {};                
+                // loading only one item
+                let first_item = fs_response.groups[0].items[0];
+
+                // Loading foursquare item qoute & qoute user
                 if (first_item.tips && first_item.tips.length > 0) {
                     tempFSObj.qoute = {};
-                    tempFSObj.qoute.text = first_item.tips[0].text.trim();
-                    if (first_item.tips[0].user && first_item.tips[0].user.firstName) {
-                        tempFSObj.qoute.user = {};
+                    tempFSObj.qoute.text = first_item.tips[0].text;
+
+                    if (first_item.tips[0].user && first_item.tips[0].user.firstName) {                        
                         tempFSObj.qoute.user
                             = `${first_item.tips[0].user.firstName} ${first_item.tips[0].user.lastName}`;
                     }
                 }
 
+                // Loading foursquare item venue info
                 if (first_item.venue) {
                     tempFSObj.venue = {};
                     if (first_item.venue.name) {
@@ -439,11 +424,13 @@ function loadFourSquarePlaceInfo(place) {
                                 first_item.venue.featuredPhotos.items[0].user.firstName + " " +
                                 first_item.venue.featuredPhotos.items[0].user.lastName;
                         }
-
                     }
                 }
+                place.placeFourSquareInfo(tempFSObj);
+            } else {
+                place.placeFourSquareInfo(null);
             }
-            place.placeFourSquareInfo(tempFSObj);
+            
         }).
         catch((error) => {
             console.log(error);
