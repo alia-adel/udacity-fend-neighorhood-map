@@ -6,5 +6,7 @@ Udacity "Neighborhood Map" frontend nano degree project
 # Technical Contribution
 ## APIs used ##
 - Google Maps JavaScript API
-- FourSquare API
+ - [Google Maps Custom Controls' Example](https://developers.google.com/maps/documentation/javascript/examples/control-custom)
+ - [Google Places' Geocoding](https://developers.google.com/maps/documentation/javascript/examples/geocoding-simple)
+- [FourSquare Venue Search API](https://developer.foursquare.com/docs/api/venues/search)
 

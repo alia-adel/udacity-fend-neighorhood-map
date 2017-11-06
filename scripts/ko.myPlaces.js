@@ -11,7 +11,8 @@
  * ==========================
  * - FourSquare API IDs
  * - FourSquare API URL
- * - Application saved places
+ * - Places' names array
+ * - Map center position
  * 
  * ## KNOCKOUT MVVM ##
  * ===================
@@ -19,13 +20,21 @@
  *      - The model holds data for the place 
  * 
  * - "PlacesViewModel" {function} --> Define knockout View Model
- * - 
+ *      - "createPlaceMarker" {function}: params {title, lat, lng}
+ *          1- Creates a marker on the map with the given parameters
+ * 
  * ## SUPPORTING FUNCTIONS ##
  * ==========================
  * - "initMap" {function}
  *  1- Initialize the map to the center of old Cairo
  *  2- calls "geoCodePlaces" to geocode "oldCairoPlaces" places
  * 
+ * - "resetMapToPosition" {function}
+ *  1- Resets the map position to the center of old Cairo
+ * 
+ * - "CenterControl" {function/constructor}
+ *  1- Creates a custom control on the map to reset the map to center of old Cairo
+ *  
  * - "geoCodePlaces" {function}
  *  1- Loops on "oldCairoPlaces" places inside a Promise
  *  2- After Promise id done, kockout binds a new "PlacesViewModel" view model
@@ -33,9 +42,18 @@
  * - "loadPlacesToPlacesModelArray" {function} 
  *  1- Casts "oldCairoPlaces" into a "Place" model array & returns it
  * 
- * - "createPlaceMarker" {function}: params {title, lat, lng}
- *  1- Creates a marker on the map with the given parameters
+ * - "loadInfoWindow" {function}
+ *  1- Search for the place object in the places area that matches the passed marker location.
+ *  2- Loads "info-window" html div into a google map info window on the 
+ *     marker passed to the function.
+ *     "div "info-window" data is bound to the currently selected place object' fourSquare data" 
  * 
+ * - "loadFourSquarePlaceInfo" {function}
+ *  1- Using FourSquare venue search api, getting first entry for each place position
+ *  2- Load data in "Place" model.
+ * 
+ * - "updateMarker" {function}
+ *  1- Show or Hide the marker from the map based on the received boolean
  */
 
 /**
@@ -47,21 +65,24 @@ const FS_CLIENT_ID = "RDOSYH0CG0SB2JP25AUKS5OJOUTYWGLJVPAF00GCRB01F5R5";
 const FS_CLIENT_SECRET = "YDBA2IU3ZLW2HGH3EXZS1BXNVYPROWP40BQWTXGUCDYNJD3G";
 const FS_LOCATION_SEARCH_URL_BASE
     = `https://api.foursquare.com/v2/venues/explore?client_id=${FS_CLIENT_ID}&client_secret=${FS_CLIENT_SECRET}&v=20170801&radius=200&venuePhotos=1&sortByDistance=1&limit=1&ll=`;
-let oldCairoPlaces = [{
-        "name": "Salah El Din Al Ayouby Citadel"
-    }, {
-        "name": "Qalawun Complex"
-    }, {
-        "name": "Wekalet El Ghoury"
-    }, {
-        "name": "Coptic Museum"
-    }, {
-        "name": "Sultan Hassan Mosque"
-    }];
+const oldCairoPlaces = [{
+    "name": "Salah El Din Al Ayouby Citadel"
+}, {
+    "name": "Abdeen Palace Museum"
+}, {
+    "name": "Qalawun Complex"
+}, {
+    "name": "Wekalet El Ghoury"
+}, {
+    "name": "Coptic Museum"
+}, {
+    "name": "Sultan Hassan Mosque"
+}];
+const mapInitialPos = {lat: 30.0298604, lng: 31.261105499999985};
 
 let map;
-let mapInitialPos = {lat: 30.0298604, lng: 31.261105499999985};
 let myMarkers = [];
+let myInfoWindows = new Map();
 
 
 /**
@@ -90,27 +111,16 @@ function PlacesViewModel() {
     // Observe the currently selected place
     self.selectedPlace = ko.observable();
 
-
     /**
      * Description: Read places array & create markers on the map
      */
     self.createPlaceMarker = function (title, lat, lng) {
         let marker, infowindow;
 
-        var redStar = {
-            path: 'M 125,5 155,90 245,90 175,145 200,230 125,180 50,230 75,145 5,90 95,90 z',
-            fillColor: 'red',
-            fillOpacity: 1,
-            scale: 0.1,
-            strokeColor: 'red',
-            strokeWeight: 1
-        };
-
         // Create marker
         marker = new google.maps.Marker({
             position: { lat, lng },
             map: map,
-            // icon: redStar,
             animation: google.maps.Animation.DROP,
             title: title
         });
@@ -214,6 +224,11 @@ function PlacesViewModel() {
             updateMarker(marker, true);
         });
 
+        // Closes the currently opened infoWindows
+        myInfoWindows.forEach((value) => {
+            value.close();
+        });
+
         resetMapToPosition(mapInitialPos.lat, mapInitialPos.lng);
 
         self.myPlaces().forEach((place) => {
@@ -262,12 +277,20 @@ function PlacesViewModel() {
  */
 function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
-        center: { lat: 30.040076, lng: 31.265423 },
+        center: mapInitialPos,
         streetViewControl: true,
         fullscreenControl: true,
         scaleControl: true,
         zoom: 15
     });
+
+    // Create the DIV to hold the control and call the CenterControl()
+    // constructor passing in this DIV.
+    let centerControlDiv = document.createElement('div');
+    let centerControl = new CenterControl(centerControlDiv, map);
+
+    centerControlDiv.index = 1;
+    map.controls[google.maps.ControlPosition.TOP_CENTER].push(centerControlDiv);
 
     // GeoCode places
     geoCodePlaces();
@@ -279,9 +302,49 @@ function initMap() {
  * @param {float} lat 
  * @param {float} lng 
  */
-function resetMapToPosition(lat, lng){
-    map.setCenter({ lat: lat, lng: lng });
+function resetMapToPosition(lat, lng) {
+    map.setCenter(mapInitialPos);
     map.setZoom(15);
+}
+
+
+/**
+ * Description: The CenterControl adds a control to the map that recenters the map mapInitialPos
+ * This constructor takes the control DIV as an argument.
+ * Credits: https://developers.google.com/maps/documentation/javascript/examples/control-custom
+ * 
+ * @param {Object} controlDiv 
+ * @param {Object} map 
+ * @constructor
+ */      
+function CenterControl(controlDiv, map) {
+    // Set CSS for the control border.
+    let controlUI = document.createElement('div');
+    controlUI.style.backgroundColor = '#fff';
+    controlUI.style.border = '2px solid #fff';
+    controlUI.style.borderRadius = '3px';
+    controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+    controlUI.style.cursor = 'pointer';
+    controlUI.style.marginBottom = '22px';
+    controlUI.style.textAlign = 'center';
+    controlUI.title = 'Click to recenter the map';
+    controlDiv.appendChild(controlUI);
+
+    // Set CSS for the control interior.
+    let controlText = document.createElement('div');
+    controlText.style.color = 'rgb(25,25,25)';
+    controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+    controlText.style.fontSize = '16px';
+    controlText.style.lineHeight = '38px';
+    controlText.style.paddingLeft = '5px';
+    controlText.style.paddingRight = '5px';
+    controlText.innerHTML = 'Center Map';
+    controlUI.appendChild(controlText);
+
+    // Setup the click event listeners: simply set the map to Chicago.
+    controlUI.addEventListener('click', function () {
+        map.setCenter(mapInitialPos);
+    });
 }
 
 /**
@@ -345,8 +408,9 @@ function loadPlacesToPlacesModelArray() {
 
 /**
  * Description: Formulates the info Window content
- * & opens it
- * @param 
+ * & opens it on the given marker.
+ * 
+ * @param {Object} marker 
  * @return {infoPathContent} - {String}
  */
 function loadInfoWindow(marker) {
@@ -358,16 +422,18 @@ function loadInfoWindow(marker) {
     });
 
     infowindow.open(map, marker);
+
+    // Track the opened infoWindows
+    myInfoWindows.set(marker, infowindow);    
 }
 
 
 /**
  * Description: Get Foursquare text & photos for the given marker
  * https://api.foursquare.com/v2/venues/explore?client_id=CLIENT_ID&client_secret=CLIENT_SECRET&v=20170801&ll=30.0058,31.230999999999995
+ * @param {Object} place 
+ * @return {Object} - {place}
  */
-//TODO handle all empty values when loading the object
-// Fix the case where no results are returned
-// Fix the presistence foursquare object (it always take the last one)
 function loadFourSquarePlaceInfo(place) {
     fetch(`${FS_LOCATION_SEARCH_URL_BASE}${place.location().lat()},${place.location().lng()}`).
         then((response) => {
@@ -377,11 +443,11 @@ function loadFourSquarePlaceInfo(place) {
                 console.log(`Error occured with status: ${response.status}`);
             }
         }).then((response) => {
-            let fs_response = response.response;                  
+            let fs_response = response.response;
             // Checking 
             if (fs_response.groups && fs_response.groups.length > 0
                 && fs_response.groups[0].items && fs_response.groups[0].items.length > 0) {
-                let tempFSObj = {};                
+                let tempFSObj = {};
                 // loading only one item
                 let first_item = fs_response.groups[0].items[0];
 
@@ -390,7 +456,7 @@ function loadFourSquarePlaceInfo(place) {
                     tempFSObj.qoute = {};
                     tempFSObj.qoute.text = first_item.tips[0].text;
 
-                    if (first_item.tips[0].user && first_item.tips[0].user.firstName) {                        
+                    if (first_item.tips[0].user && first_item.tips[0].user.firstName) {
                         tempFSObj.qoute.user
                             = `${first_item.tips[0].user.firstName} ${first_item.tips[0].user.lastName}`;
                     }
@@ -430,18 +496,21 @@ function loadFourSquarePlaceInfo(place) {
             } else {
                 place.placeFourSquareInfo(null);
             }
-            
         }).
         catch((error) => {
             console.log(error);
         });
 
     return place;
-
 }
 
+
+
 /**
- * Description: filter markers on the map based on 
+ * Description: show/hide marker from the map based on addMarker flag
+ * 
+ * @param {Object} marker 
+ * @return {boolean} - {addMarker}
  */
 function updateMarker(marker, addMarker) {
     if (marker && addMarker && marker.getMap() == null) {
