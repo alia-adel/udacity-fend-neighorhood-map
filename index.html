@@ -34,7 +34,7 @@
             <div id="map"></div>
         </div>
 
-        <!-- Markup data -->
+        <!-- FourSquare data template -->
         <div class="template">
             <div id="info-window">
                 <div id="info-window-content" data-bind="if: $root.selectedPlace()">
@@ -43,6 +43,8 @@
                             <p data-bind="text: $root.selectedPlace().name"></p>
                         </strong>
                         <p data-bind="text: $root.selectedPlace().place.formatted_address"></p>
+                        <a data-bind="text: $root.selectedPlace().googleMapURL().text,attr: {href: $root.selectedPlace().googleMapURL().url}"
+                            target="_blank"></a>
                     </div>
                     <div class="modal-body" data-bind="if: $root.selectedPlace().placeFourSquareInfo()">
                         <div class="fs-card" data-bind="if: $root.selectedPlace().placeFourSquareInfo().venue !== null">
@@ -75,11 +77,12 @@
                                 </strong>
                             </blockquote>
 
-
-                            <figure data-bind="if: $root.selectedPlace().placeFourSquareInfo().venue.photo  !== null">
-                                <img class="venue-img" data-bind="attr: {src: $root.selectedPlace().placeFourSquareInfo().venue.photo.url, alt: $root.selectedPlace().name}"
-                                />
-                            </figure>
+                            <div class="fs-row flex-space-around" data-bind="if: $root.selectedPlace().placeFourSquareInfo().venue.photo  !== null">
+                                <figure>
+                                    <img class="venue-img" data-bind="attr: {src: $root.selectedPlace().placeFourSquareInfo().venue.photo.url, alt: $root.selectedPlace().name}"
+                                    />
+                                </figure>
+                            </div>
                         </div>
                     </div>
                 </div>

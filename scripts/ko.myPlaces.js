@@ -65,6 +65,8 @@ const FS_CLIENT_ID = "RDOSYH0CG0SB2JP25AUKS5OJOUTYWGLJVPAF00GCRB01F5R5";
 const FS_CLIENT_SECRET = "YDBA2IU3ZLW2HGH3EXZS1BXNVYPROWP40BQWTXGUCDYNJD3G";
 const FS_LOCATION_SEARCH_URL_BASE
     = `https://api.foursquare.com/v2/venues/explore?client_id=${FS_CLIENT_ID}&client_secret=${FS_CLIENT_SECRET}&v=20170801&radius=200&venuePhotos=1&sortByDistance=1&limit=1&ll=`;
+const GOOGLE_MAP_URL_BASE = 'https://maps.google.com/maps?z=20&ll=';
+const mapInitialPos = {lat: 30.0430033, lng: 31.247779600000058};
 const oldCairoPlaces = [{
     "name": "Salah El Din Al Ayouby Citadel"
 }, {
@@ -78,7 +80,7 @@ const oldCairoPlaces = [{
 }, {
     "name": "Sultan Hassan Mosque"
 }];
-const mapInitialPos = {lat: 30.0430033, lng: 31.247779600000058};
+
 
 let map;
 let myMarkers = [];
@@ -94,6 +96,12 @@ function Place(name = 'UNKNOWN', place = undefined) {
     self.place = place
     self.location = ko.computed(function () {
         return self.place.geometry.location;
+    }, self);
+    self.googleMapURL = ko.computed(function() {
+        return {
+            text: 'View on Google Maps',
+            url: `${GOOGLE_MAP_URL_BASE}${self.location().lat()},${self.location().lng()}`
+        }            
     }, self);
     self.selectedClassName = ko.observable(false);
     // Foursquare data
@@ -437,6 +445,8 @@ function loadInfoWindow(marker) {
  * @return {Object} - {place}
  */
 function loadFourSquarePlaceInfo(place) {
+    place.placeFourSquareInfo(null);
+
     fetch(`${FS_LOCATION_SEARCH_URL_BASE}${place.location().lat()},${place.location().lng()}`).
         then((response) => {
             if (response.ok) {
@@ -499,8 +509,8 @@ function loadFourSquarePlaceInfo(place) {
                 place.placeFourSquareInfo(null);
             }
         }).
-        catch((error) => {
-            console.log(error);
+        catch((error) => {            
+            console.log(`Failed to load FourSquare data with error: ${error}`);
         });
 
     return place;
