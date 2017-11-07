@@ -29,8 +29,8 @@
  *  1- Initialize the map to the center of old Cairo
  *  2- calls "geoCodePlaces" to geocode "oldCairoPlaces" places
  * 
- * - "resetMapToPosition" {function}
- *  1- Resets the map position to the center of old Cairo
+ * - "setMapToPosition" {function}
+ *  1- Sets the map position to the center of old Cairo
  * 
  * - "CenterControl" {function/constructor}
  *  1- Creates a custom control on the map to reset the map to center of old Cairo
@@ -78,7 +78,7 @@ const oldCairoPlaces = [{
 }, {
     "name": "Sultan Hassan Mosque"
 }];
-const mapInitialPos = {lat: 30.0298604, lng: 31.261105499999985};
+const mapInitialPos = {lat: 30.0430033, lng: 31.247779600000058};
 
 let map;
 let myMarkers = [];
@@ -129,8 +129,8 @@ function PlacesViewModel() {
             this.setAnimation(google.maps.Animation.BOUNCE);
             setTimeout(() => {
                 marker.setAnimation(null);
-            }, 2000);
-            map.setCenter({ lat: this.position.lat(), lng: this.position.lng() });
+            }, 2000);            
+            setMapToPosition(this.position.lat(), this.position.lng(), 20)
             // Search for the marker place & set it as selected
             let place = self.getMarkerPlace(this);
             if (place) {
@@ -229,7 +229,7 @@ function PlacesViewModel() {
             value.close();
         });
 
-        resetMapToPosition(mapInitialPos.lat, mapInitialPos.lng);
+        setMapToPosition(mapInitialPos.lat, mapInitialPos.lng, 15);
 
         self.myPlaces().forEach((place) => {
             place.selectedClassName(false);
@@ -244,13 +244,14 @@ function PlacesViewModel() {
      * - Display Foursquare info related to the selected place
      */
     self.triggerPlaceClickActions = function () {
+        self.navHidden(true);
         self.selectedPlace(this);
         self.selectedPlace().marker.setAnimation(google.maps.Animation.BOUNCE);
         setTimeout(() => {
             self.selectedPlace().marker.setAnimation(null);
         }, 2000);
 
-        resetMapToPosition(this.marker.position.lat(), this.marker.position.lng());
+        setMapToPosition(this.marker.position.lat(), this.marker.position.lng(), 20);        
         loadInfoWindow(this.marker);
 
         self.myPlaces().forEach((place) => {
@@ -297,14 +298,15 @@ function initMap() {
 }
 
 /**
- * Description: Resets the map position to the given latitude & longtitude
+ * Description: Sets the map position to the given latitude & longtitude 
+ * & with the given zoom level
  * 
  * @param {float} lat 
  * @param {float} lng 
  */
-function resetMapToPosition(lat, lng) {
-    map.setCenter(mapInitialPos);
-    map.setZoom(15);
+function setMapToPosition(lat, lng, zoom = 20) {
+    map.setCenter({lat: lat, lng: lng});
+    map.setZoom(zoom);
 }
 
 
@@ -341,9 +343,9 @@ function CenterControl(controlDiv, map) {
     controlText.innerHTML = 'Center Map';
     controlUI.appendChild(controlText);
 
-    // Setup the click event listeners: simply set the map to Chicago.
+    // Setup the click event listeners: simply set the map to Old Cairo center.
     controlUI.addEventListener('click', function () {
-        map.setCenter(mapInitialPos);
+        setMapToPosition(mapInitialPos.lat, mapInitialPos.lng, 15);        
     });
 }
 
