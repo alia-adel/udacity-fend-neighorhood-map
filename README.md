@@ -1,8 +1,8 @@
 # Old Cairo Map
 
 * [Description](#Description)
-* [User Guide](#User Guide)
-* [Code Walk-Through](#Code Walk-Through)
+* [User Guide](#User-Guide)
+* [Code Walk-Through](#Code-Walk-Through)
 * [Technical](#Technical)
 
 ## Description
@@ -45,7 +45,7 @@
 ![Selected Place](assets/images/centerMap.PNG)
 
 
-## Code Walk-Through
+## Code Walk Through
 1. Google maps javaScript api's url is imported in `index.html`
     1. `initMap()` function is passed as a parameter to load after calling google's api.
 2. In `initMap()` function:
