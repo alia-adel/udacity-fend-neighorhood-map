@@ -1,5 +1,10 @@
 # Old Cairo Map
 
+* [Description](#Description)
+* [User Guide](#User Guide)
+* [Code Walk-Through](#Code Walk-Through)
+* [Technical](#Technical)
+
 ## Description
 * This is a map built using google maps JavaScript api to mark several historical places in old Cairo.
 * Each marker displays one of FourSquare users' qoute & ratings pinned to this place.
@@ -56,7 +61,7 @@
         - `filterText` - To observe for the filter text that will be entered by the user.
         - `navHidden`  - Flag to hold if the navigation is shown or hidden.
         - `selectedPlace` - Track the currently selected place object.
-        - `myPlaces` - Observable array for all my places
+        - `myPlaces` - Observable array for all my places.
     2. **Create the following functions:**
         - `createPlaceMarker` - Given a title, latitude & longtitude, it adds a marker on the map
             - Adds an onClick event on each marker to do the following:
