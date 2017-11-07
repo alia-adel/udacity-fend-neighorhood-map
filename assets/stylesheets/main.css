@@ -137,7 +137,7 @@ header h2 {
     justify-content: flex-start;    
     align-items: center;
     flex-wrap: wrap;
-    padding: 10px 20px;
+    padding: 5px 20px;
 }
 
 .filter-form input[type=text] {
@@ -179,7 +179,7 @@ header h2 {
 .fa-foursquare {
     color: #ffffff;
     background-color: #fc4575;
-    padding: 10px;
+    padding: 10px 13px 6px 13px;
     border-radius: 4px;
     margin-right: 10px;
 }

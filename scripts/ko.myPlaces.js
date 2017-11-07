@@ -428,7 +428,7 @@ function loadInfoWindow(marker) {
 
     let infowindow = new google.maps.InfoWindow({
         content: content,
-        maxWidth: 400
+        maxWidth: 300
     });
 
     infowindow.open(map, marker);
