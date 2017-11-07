@@ -1,7 +1,7 @@
 /**
  * Author: Alia.Adel
  * GitHub: https://github.com/alia-adel/
- * Description: Udacity front end nanodegree neighborhood project
+ * @description Udacity front end nanodegree neighborhood project
  * Date: November 2017
  * 
  * ### TABLE OF CONTENTS ###
@@ -66,7 +66,7 @@ const FS_CLIENT_SECRET = "YDBA2IU3ZLW2HGH3EXZS1BXNVYPROWP40BQWTXGUCDYNJD3G";
 const FS_LOCATION_SEARCH_URL_BASE
     = `https://api.foursquare.com/v2/venues/explore?client_id=${FS_CLIENT_ID}&client_secret=${FS_CLIENT_SECRET}&v=20170801&radius=200&venuePhotos=1&sortByDistance=1&limit=1&ll=`;
 const GOOGLE_MAP_URL_BASE = 'https://maps.google.com/maps?z=20&ll=';
-const mapInitialPos = {lat: 30.0430033, lng: 31.247779600000058};
+const mapInitialPos = { lat: 30.0430033, lng: 31.247779600000058 };
 const oldCairoPlaces = [{
     "name": "Salah El Din Al Ayouby Citadel"
 }, {
@@ -88,20 +88,21 @@ let myInfoWindows = new Map();
 
 
 /**
- * Description: Place model
+ * @description Place model
+ * @constructor
  */
-function Place(name = 'UNKNOWN', place = undefined) {
+function Place(name = 'UNKNOWN', place) {
     let self = this;
     self.name = name;
     self.place = place
     self.location = ko.computed(function () {
         return self.place.geometry.location;
     }, self);
-    self.googleMapURL = ko.computed(function() {
+    self.googleMapURL = ko.computed(function () {
         return {
             text: 'View on Google Maps',
             url: `${GOOGLE_MAP_URL_BASE}${self.location().lat()},${self.location().lng()}`
-        }            
+        }
     }, self);
     self.selectedClassName = ko.observable(false);
     // Foursquare data
@@ -110,7 +111,7 @@ function Place(name = 'UNKNOWN', place = undefined) {
 
 
 /**
- * Description: Map MVVM
+ * @description Map MVVM
  */
 function PlacesViewModel() {
     let self = this;
@@ -120,7 +121,7 @@ function PlacesViewModel() {
     self.selectedPlace = ko.observable();
 
     /**
-     * Description: Read places array & create markers on the map
+     * @description Read places array & create markers on the map
      */
     self.createPlaceMarker = function (title, lat, lng) {
         let marker, infowindow;
@@ -134,10 +135,7 @@ function PlacesViewModel() {
         });
 
         marker.addListener('click', function () {
-            this.setAnimation(google.maps.Animation.BOUNCE);
-            setTimeout(() => {
-                marker.setAnimation(null);
-            }, 2000);            
+            bounceMarker(this);
             setMapToPosition(this.position.lat(), this.position.lng(), 20)
             // Search for the marker place & set it as selected
             let place = self.getMarkerPlace(this);
@@ -169,7 +167,7 @@ function PlacesViewModel() {
 
 
     /**
-     * Description: Get the place object based on the given marker
+     * @description Get the place object based on the given marker
      */
     self.getMarkerPlace = function (marker) {
         let foundPlace;
@@ -183,9 +181,8 @@ function PlacesViewModel() {
     }
 
 
-
     /**
-     * Description: Change navifation visibility status
+     * @description Change navigation's visibility status
      */
     self.changeNavigationStatus = function () {
         (self.navHidden()) ? self.navHidden(false) : self.navHidden(true);
@@ -193,9 +190,9 @@ function PlacesViewModel() {
 
 
     /**
-     * Description: When user filters on places
-     *      1- Remove the unmatched results from myPlaces' array
-     *      2- Remove their markers from the map
+     * @description When user filters on places
+     *      - Remove the unmatched results from myPlaces' array
+     *      - Remove their markers from the map
      */
     self.filterPlaces = function () {
         // Make sure to reload all places
@@ -223,7 +220,13 @@ function PlacesViewModel() {
     }
 
     /**
-     * Description: Resets back list of places & markers
+     * @description Resets back list of places & markers
+     *      - Reset myPlaces array to the original list
+     *      - Clears the filter text
+     *      - redraw all markers
+     *      - Close all opened info windows
+     *      - Reset the map position to "Abdeen Palace Museum"
+     *      - Clear left navigation selections
      */
     self.resetPlaces = function () {
         self.myPlaces(self.myPlacesBkp);
@@ -245,21 +248,20 @@ function PlacesViewModel() {
     }
 
     /**
-     * Description: One function to trigger all actions needed when clicking on a place
+     * @description One function to trigger all actions needed when clicking on a place
      * in the list, i.e.:
-     * - Set the map center to the place's position
-     * - set the list item as selected
-     * - Display Foursquare info related to the selected place
+     *      - Hides the navigation
+     *      - set the list item as selected
+     *      - Bounce the marker
+     *      - Set the map center to the place's position
+     *      - Display Foursquare info related to the selected place
+     *      - Highlight the selected place in the left navigation
      */
     self.triggerPlaceClickActions = function () {
         self.navHidden(true);
         self.selectedPlace(this);
-        self.selectedPlace().marker.setAnimation(google.maps.Animation.BOUNCE);
-        setTimeout(() => {
-            self.selectedPlace().marker.setAnimation(null);
-        }, 2000);
-
-        setMapToPosition(this.marker.position.lat(), this.marker.position.lng(), 20);        
+        bounceMarker(self.selectedPlace().marker);
+        setMapToPosition(this.marker.position.lat(), this.marker.position.lng(), 20);
         loadInfoWindow(this.marker);
 
         self.myPlaces().forEach((place) => {
@@ -267,22 +269,15 @@ function PlacesViewModel() {
         });
 
         this.selectedClassName(true);
-
-
     }
 }
+/* #### end of Kockout View Model #### */
 
+
+/* ##### Functions section ##### */
 /**
- * #### end of Kockout View Model ####
- */
-
-
-/**
- * ##### Functions section #####
- */
-
-/**
- * Description: This function will load the map on page load
+ * @description This function will load the map on page load
+ *              & load places' geocodes    
  */
 function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
@@ -306,27 +301,27 @@ function initMap() {
 }
 
 /**
- * Description: Sets the map position to the given latitude & longtitude 
+ * @description Sets the map position to the given latitude & longtitude 
  * & with the given zoom level
  * 
  * @param {float} lat 
  * @param {float} lng 
  */
 function setMapToPosition(lat, lng, zoom = 20) {
-    map.setCenter({lat: lat, lng: lng});
+    map.setCenter({ lat: lat, lng: lng });
     map.setZoom(zoom);
 }
 
 
 /**
- * Description: The CenterControl adds a control to the map that recenters the map mapInitialPos
+ * @description The CenterControl adds a control to the map that recenters the map mapInitialPos
  * This constructor takes the control DIV as an argument.
  * Credits: https://developers.google.com/maps/documentation/javascript/examples/control-custom
  * 
  * @param {Object} controlDiv 
  * @param {Object} map 
  * @constructor
- */      
+ */
 function CenterControl(controlDiv, map) {
     // Set CSS for the control border.
     let controlUI = document.createElement('div');
@@ -353,18 +348,18 @@ function CenterControl(controlDiv, map) {
 
     // Setup the click event listeners: simply set the map to Old Cairo center.
     controlUI.addEventListener('click', function () {
-        setMapToPosition(mapInitialPos.lat, mapInitialPos.lng, 15);        
+        setMapToPosition(mapInitialPos.lat, mapInitialPos.lng, 15);
     });
 }
 
 /**
- * Description: Geocoding places using Google JavaScript API documentation examples
+ * @description Geocoding places using Google JavaScript API documentation examples
  * https://developers.google.com/maps/documentation/javascript/examples/geocoding-simple
- *          1- Constructs a Google Geocoder object
- *          2- Create a Promise to track when all places are geocoded
- *              - Loop on "oldCairoPlaces" variable & geocode each of its places
- *              - call Promise.resolve() when all places were geocoded
- *          3- Once resolved create a new knouckout model view & bind it
+ *      - Constructs a Google Geocoder object
+ *      - Create a Promise to track when all places are geocoded
+ *          - Loop on "oldCairoPlaces" array & geocode each of its places
+ *          - call Promise.resolve() when all places were geocoded
+ *      - Once resolved create a new knouckout model view & bind it
  */
 function geoCodePlaces() {
     var geocoder = new google.maps.Geocoder();
@@ -402,11 +397,10 @@ function geoCodePlaces() {
 
 
 /**
- * Desrciption: Casts "oldCairoPlaces" into a "Place" array & returns it
+ * @description Casts "oldCairoPlaces" into a "Place" array & returns it
  * @returns {Array} - "Place" array
  */
 function loadPlacesToPlacesModelArray() {
-    // Editable data
     let placesTemp = [];
     oldCairoPlaces.forEach((place) => {
         placesTemp.push(new Place(place.name, place.place));
@@ -417,7 +411,7 @@ function loadPlacesToPlacesModelArray() {
 
 
 /**
- * Description: Formulates the info Window content
+ * @description Load the info Window content
  * & opens it on the given marker.
  * 
  * @param {Object} marker 
@@ -434,18 +428,18 @@ function loadInfoWindow(marker) {
     infowindow.open(map, marker);
 
     // Track the opened infoWindows
-    myInfoWindows.set(marker, infowindow);    
+    myInfoWindows.set(marker, infowindow);
 }
 
 
 /**
- * Description: Get Foursquare text & photos for the given marker
+ * @description Get Foursquare qoutes & photos for the given marker
  * https://api.foursquare.com/v2/venues/explore?client_id=CLIENT_ID&client_secret=CLIENT_SECRET&v=20170801&ll=30.0058,31.230999999999995
  * @param {Object} place 
  * @return {Object} - {place}
  */
 function loadFourSquarePlaceInfo(place) {
-    place.placeFourSquareInfo(null);
+    place.placeFourSquareInfo(undefined);
 
     fetch(`${FS_LOCATION_SEARCH_URL_BASE}${place.location().lat()},${place.location().lng()}`).
         then((response) => {
@@ -506,10 +500,10 @@ function loadFourSquarePlaceInfo(place) {
                 }
                 place.placeFourSquareInfo(tempFSObj);
             } else {
-                place.placeFourSquareInfo(null);
+                place.placeFourSquareInfo(undefined);
             }
         }).
-        catch((error) => {            
+        catch((error) => {
             console.log(`Failed to load FourSquare data with error: ${error}`);
         });
 
@@ -517,12 +511,11 @@ function loadFourSquarePlaceInfo(place) {
 }
 
 
-
 /**
- * Description: show/hide marker from the map based on addMarker flag
+ * @description show/hide marker from the map based on addMarker flag
  * 
  * @param {Object} marker 
- * @return {boolean} - {addMarker}
+ * @param {boolean} addMarker
  */
 function updateMarker(marker, addMarker) {
     if (marker && addMarker && marker.getMap() == null) {
@@ -532,4 +525,15 @@ function updateMarker(marker, addMarker) {
     if (marker && !addMarker) {
         marker.setMap(null);
     }
+}
+
+/**
+ * @description Bounce the given marker for 2 seconds
+ * @param {Object} marker 
+ */
+function bounceMarker(marker) {
+    marker.setAnimation(google.maps.Animation.BOUNCE);
+    setTimeout(() => {
+        marker.setAnimation(null);
+    }, 2000);
 }

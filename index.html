@@ -9,32 +9,32 @@
     <link rel="stylesheet" type="text/css" href="assets/stylesheets/vendor/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" type="text/css" href="assets/stylesheets/main.css">
 </head>
-
 <body>
     <div class="app-container">
+        <!-- Navigation -->
         <nav id="app-nav" data-bind="css: {hidden: $data.navHidden}">
             <div class="filter-form">
                 <input type="text" placeholder="Filter places" data-bind="value: $root.filterText">
                 <i class="fa fa-filter fa-lg" aria-hidden="true" data-bind="click: $root.filterPlaces"></i>
                 <i class="fa fa-refresh fa-lg" aria-hidden="true" data-bind="click: $root.resetPlaces"></i>
             </div>
-
             <ul data-bind="foreach: myPlaces">
                 <li class="myplace" data-bind="text: name, click: $root.triggerPlaceClickActions, css: {active: $data.selectedClassName}">
                 </li>
             </ul>
         </nav>
         <div class="main">
+            <!-- Header -->
             <header>
                 <i id="close-nav" class="fa fa-bars fa-lg" aria-hidden="true" data-bind="click: $root.changeNavigationStatus"></i>
                 <h2>Old Cairo Map</h2>
             </header>
+            <!-- Map -->
             <div id="map"></div>
         </div>
 
         <!-- FourSquare data template -->
         <div class="template">
-
             <div id="info-window" data-bind="if: $root.selectedPlace()">
                 <div class="modal-header">
                     <strong>
