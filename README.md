@@ -1,9 +1,9 @@
 # Old Cairo Map
 
-* [Description](#Description)
-* [User Guide](#User-Guide)
-* [Code Walk-Through](#Code-Walk-Through)
-* [Technical](#Technical)
+* [Description](#description)
+* [User Guide](#user-guide)
+* [Code Walk-Through](#code-walk-through)
+* [Technical](#technical)
 
 ## Description
 * This is a map built using google maps JavaScript api to mark several historical places in old Cairo.
