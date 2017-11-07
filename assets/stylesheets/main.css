@@ -27,6 +27,18 @@ li {
     margin: 0;
 }
 
+.bold-text {
+    font-weight: bold;
+}
+
+.flex-space-btw {
+    justify-content: space-between;
+}
+
+.flex-space-around {
+    justify-content: space-around;
+}
+
 .app-container {
     display: flex;
     position: relative; 
@@ -185,14 +197,6 @@ header h2 {
     display: flex;
     justify-content: flex-start;
     align-items: center;
-}
-
-.flex-space-btw {
-    justify-content: space-between;
-}
-
-.flex-space-around {
-    justify-content: space-around;
 }
 
 .fs-card {

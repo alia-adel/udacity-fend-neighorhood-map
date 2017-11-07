@@ -54,19 +54,23 @@
  * 
  * - "updateMarker" {function}
  *  1- Show or Hide the marker from the map based on the received boolean
+ * 
+ *  - "bounceMarker" {function}
+ *  1- Bounces the marker for 2 seconds
  */
-
 /**
  * ## CONSTANTS/VARIABLES ##
  */
-
 // Foursquare api authentication
 const FS_CLIENT_ID = "RDOSYH0CG0SB2JP25AUKS5OJOUTYWGLJVPAF00GCRB01F5R5";
 const FS_CLIENT_SECRET = "YDBA2IU3ZLW2HGH3EXZS1BXNVYPROWP40BQWTXGUCDYNJD3G";
-const FS_LOCATION_SEARCH_URL_BASE
-    = `https://api.foursquare.com/v2/venues/explore?client_id=${FS_CLIENT_ID}&client_secret=${FS_CLIENT_SECRET}&v=20170801&radius=200&venuePhotos=1&sortByDistance=1&limit=1&ll=`;
+const FS_LOCATION_SEARCH_URL_BASE = `https://api.foursquare.com/v2/venues/explore?client_id=${FS_CLIENT_ID}&client_secret=${FS_CLIENT_SECRET}&v=20170801&radius=200&venuePhotos=1&sortByDistance=1&limit=1&ll=`;
 const GOOGLE_MAP_URL_BASE = 'https://maps.google.com/maps?z=20&ll=';
-const mapInitialPos = { lat: 30.0430033, lng: 31.247779600000058 };
+// "Abdeen Palace Museum" location
+const mapInitialPos = {
+    lat: 30.0430033,
+    lng: 31.247779600000058
+};
 const oldCairoPlaces = [{
     "name": "Salah El Din Al Ayouby Citadel"
 }, {
@@ -95,10 +99,10 @@ function Place(name = 'UNKNOWN', place) {
     let self = this;
     self.name = name;
     self.place = place
-    self.location = ko.computed(function () {
+    self.location = ko.computed(function() {
         return self.place.geometry.location;
     }, self);
-    self.googleMapURL = ko.computed(function () {
+    self.googleMapURL = ko.computed(function() {
         return {
             text: 'View on Google Maps',
             url: `${GOOGLE_MAP_URL_BASE}${self.location().lat()},${self.location().lng()}`
@@ -123,18 +127,18 @@ function PlacesViewModel() {
     /**
      * @description Read places array & create markers on the map
      */
-    self.createPlaceMarker = function (title, lat, lng) {
+    self.createPlaceMarker = function(title, lat, lng) {
         let marker, infowindow;
 
         // Create marker
         marker = new google.maps.Marker({
-            position: { lat, lng },
+            position: {lat,lng},
             map: map,
             animation: google.maps.Animation.DROP,
             title: title
         });
 
-        marker.addListener('click', function () {
+        marker.addListener('click', function() {
             bounceMarker(this);
             setMapToPosition(this.position.lat(), this.position.lng(), 20)
             // Search for the marker place & set it as selected
@@ -169,11 +173,11 @@ function PlacesViewModel() {
     /**
      * @description Get the place object based on the given marker
      */
-    self.getMarkerPlace = function (marker) {
+    self.getMarkerPlace = function(marker) {
         let foundPlace;
         self.myPlaces().forEach((place) => {
-            if (marker.position.lat() === place.location().lat()
-                && marker.position.lng() === place.location().lng()) {
+            if (marker.position.lat() === place.location().lat() &&
+                marker.position.lng() === place.location().lng()) {
                 foundPlace = place;
             }
         });
@@ -184,8 +188,8 @@ function PlacesViewModel() {
     /**
      * @description Change navigation's visibility status
      */
-    self.changeNavigationStatus = function () {
-        (self.navHidden()) ? self.navHidden(false) : self.navHidden(true);
+    self.changeNavigationStatus = function() {
+        (self.navHidden()) ? self.navHidden(false): self.navHidden(true);
     }
 
 
@@ -194,7 +198,7 @@ function PlacesViewModel() {
      *      - Remove the unmatched results from myPlaces' array
      *      - Remove their markers from the map
      */
-    self.filterPlaces = function () {
+    self.filterPlaces = function() {
         // Make sure to reload all places
         let tempPlaces = self.myPlacesBkp;
         let updatePlaces = [];
@@ -202,7 +206,7 @@ function PlacesViewModel() {
         // loop on places to see if any of the names matches partially the filter text
         for (let i = 0; i < tempPlaces.length; i++) {
             if (tempPlaces[i].name.trim().toLocaleLowerCase().includes(
-                self.filterText().trim().toLocaleLowerCase())) {
+                    self.filterText().trim().toLocaleLowerCase())) {
                 // In case place matches, keep it in a side array
                 updatePlaces.push(tempPlaces[i]);
                 // In case the place matches re-add the marker on the map if not there
@@ -228,7 +232,7 @@ function PlacesViewModel() {
      *      - Reset the map position to "Abdeen Palace Museum"
      *      - Clear left navigation selections
      */
-    self.resetPlaces = function () {
+    self.resetPlaces = function() {
         self.myPlaces(self.myPlacesBkp);
         self.filterText("");
         myMarkers.forEach((marker) => {
@@ -257,7 +261,7 @@ function PlacesViewModel() {
      *      - Display Foursquare info related to the selected place
      *      - Highlight the selected place in the left navigation
      */
-    self.triggerPlaceClickActions = function () {
+    self.triggerPlaceClickActions = function() {
         self.navHidden(true);
         self.selectedPlace(this);
         bounceMarker(self.selectedPlace().marker);
@@ -308,7 +312,10 @@ function initMap() {
  * @param {float} lng 
  */
 function setMapToPosition(lat, lng, zoom = 20) {
-    map.setCenter({ lat: lat, lng: lng });
+    map.setCenter({
+        lat: lat,
+        lng: lng
+    });
     map.setZoom(zoom);
 }
 
@@ -347,7 +354,7 @@ function CenterControl(controlDiv, map) {
     controlUI.appendChild(controlText);
 
     // Setup the click event listeners: simply set the map to Old Cairo center.
-    controlUI.addEventListener('click', function () {
+    controlUI.addEventListener('click', function() {
         setMapToPosition(mapInitialPos.lat, mapInitialPos.lng, 15);
     });
 }
@@ -368,9 +375,9 @@ function geoCodePlaces() {
         let counter = oldCairoPlaces.length;
         oldCairoPlaces.forEach((place) => {
             geocoder.geocode({
-                address: place.name
-            },
-                function (results, status) {
+                    address: place.name
+                },
+                function(results, status) {
                     if (status === google.maps.GeocoderStatus.OK) {
                         place.place = results[0];
                         counter--;
@@ -442,70 +449,69 @@ function loadFourSquarePlaceInfo(place) {
     place.placeFourSquareInfo(undefined);
 
     fetch(`${FS_LOCATION_SEARCH_URL_BASE}${place.location().lat()},${place.location().lng()}`).
-        then((response) => {
-            if (response.ok) {
-                return response.json();
-            } else {
-                console.log(`Error occured with status: ${response.status}`);
+    then((response) => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            console.log(`Error occured with status: ${response.status}`);
+        }
+    }).then((response) => {
+        let fs_response = response.response;
+        // Checking 
+        if (fs_response.groups && fs_response.groups.length > 0 &&
+            fs_response.groups[0].items && fs_response.groups[0].items.length > 0) {
+            let tempFSObj = {};
+            // loading only one item
+            let first_item = fs_response.groups[0].items[0];
+
+            // Loading foursquare item qoute & qoute user
+            if (first_item.tips && first_item.tips.length > 0) {
+                tempFSObj.qoute = {};
+                tempFSObj.qoute.text = first_item.tips[0].text;
+
+                if (first_item.tips[0].user && first_item.tips[0].user.firstName) {
+                    tempFSObj.qoute.user = `${first_item.tips[0].user.firstName} ${first_item.tips[0].user.lastName}`;
+                }
             }
-        }).then((response) => {
-            let fs_response = response.response;
-            // Checking 
-            if (fs_response.groups && fs_response.groups.length > 0
-                && fs_response.groups[0].items && fs_response.groups[0].items.length > 0) {
-                let tempFSObj = {};
-                // loading only one item
-                let first_item = fs_response.groups[0].items[0];
 
-                // Loading foursquare item qoute & qoute user
-                if (first_item.tips && first_item.tips.length > 0) {
-                    tempFSObj.qoute = {};
-                    tempFSObj.qoute.text = first_item.tips[0].text;
-
-                    if (first_item.tips[0].user && first_item.tips[0].user.firstName) {
-                        tempFSObj.qoute.user
-                            = `${first_item.tips[0].user.firstName} ${first_item.tips[0].user.lastName}`;
-                    }
+            // Loading foursquare item venue info
+            if (first_item.venue) {
+                tempFSObj.venue = {};
+                if (first_item.venue.name) {
+                    tempFSObj.venue.name = first_item.venue.name;
+                }
+                if (first_item.venue.url) {
+                    tempFSObj.venue.url = first_item.venue.url;
+                }
+                if (first_item.venue.rating) {
+                    tempFSObj.venue.rating = first_item.venue.rating;
+                }
+                if (first_item.venue.ratingColor) {
+                    tempFSObj.venue.ratingColor = first_item.venue.ratingColor;
                 }
 
-                // Loading foursquare item venue info
-                if (first_item.venue) {
-                    tempFSObj.venue = {};
-                    if (first_item.venue.name) {
-                        tempFSObj.venue.name = first_item.venue.name;
-                    }
-                    if (first_item.venue.url) {
-                        tempFSObj.venue.url = first_item.venue.url;
-                    }
-                    if (first_item.venue.rating) {
-                        tempFSObj.venue.rating = first_item.venue.rating;
-                    }
-                    if (first_item.venue.ratingColor) {
-                        tempFSObj.venue.ratingColor = first_item.venue.ratingColor;
-                    }
-
-                    if (first_item.venue.featuredPhotos && first_item.venue.featuredPhotos.items
-                        && first_item.venue.featuredPhotos.items.length > 0) {
-                        tempFSObj.venue.photo = {};
-                        tempFSObj.venue.photo.url =
-                            first_item.venue.featuredPhotos.items[0].prefix + "width" +
-                            first_item.venue.featuredPhotos.items[0].width +
-                            first_item.venue.featuredPhotos.items[0].suffix;
-                        if (first_item.venue.featuredPhotos.items[0].user) {
-                            tempFSObj.venue.photo.user =
-                                first_item.venue.featuredPhotos.items[0].user.firstName + " " +
-                                first_item.venue.featuredPhotos.items[0].user.lastName;
-                        }
+                if (first_item.venue.featuredPhotos && first_item.venue.featuredPhotos.items &&
+                    first_item.venue.featuredPhotos.items.length > 0) {
+                    tempFSObj.venue.photo = {};
+                    tempFSObj.venue.photo.url =
+                        first_item.venue.featuredPhotos.items[0].prefix + "width" +
+                        first_item.venue.featuredPhotos.items[0].width +
+                        first_item.venue.featuredPhotos.items[0].suffix;
+                    if (first_item.venue.featuredPhotos.items[0].user) {
+                        tempFSObj.venue.photo.user =
+                            first_item.venue.featuredPhotos.items[0].user.firstName + " " +
+                            first_item.venue.featuredPhotos.items[0].user.lastName;
                     }
                 }
-                place.placeFourSquareInfo(tempFSObj);
-            } else {
-                place.placeFourSquareInfo(undefined);
             }
-        }).
-        catch((error) => {
-            console.log(`Failed to load FourSquare data with error: ${error}`);
-        });
+            place.placeFourSquareInfo(tempFSObj);
+        } else {
+            place.placeFourSquareInfo(undefined);
+        }
+    }).
+    catch((error) => {
+        console.log(`Failed to load FourSquare data with error: ${error}`);
+    });
 
     return place;
 }

@@ -9,6 +9,7 @@
     <link rel="stylesheet" type="text/css" href="assets/stylesheets/vendor/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" type="text/css" href="assets/stylesheets/main.css">
 </head>
+
 <body>
     <div class="app-container">
         <!-- Navigation -->
@@ -37,9 +38,7 @@
         <div class="template">
             <div id="info-window" data-bind="if: $root.selectedPlace()">
                 <div class="modal-header">
-                    <strong>
-                        <p data-bind="text: $root.selectedPlace().name"></p>
-                    </strong>
+                    <p class="bold-text" data-bind="text: $root.selectedPlace().name"></p>
                     <p data-bind="text: $root.selectedPlace().place.formatted_address"></p>
                     <a data-bind="text: $root.selectedPlace().googleMapURL().text,attr: {href: $root.selectedPlace().googleMapURL().url}" target="_blank"></a>
                 </div>
@@ -50,30 +49,22 @@
                             <h3 class="brand-name">Foursquare</h3>
                         </div>
                         <div class="fs-row flex-space-btw" data-bind="if: $root.selectedPlace().placeFourSquareInfo().venue.name">
-                            <strong>
-                                <p data-bind="text: $root.selectedPlace().placeFourSquareInfo().venue.name"></p>
-                            </strong>
+                            <p class="bold-text" data-bind="text: $root.selectedPlace().placeFourSquareInfo().venue.name"></p>
                             <div data-bind="if: $root.selectedPlace().placeFourSquareInfo().venue.rating">
                                 <span class="venue-rating" data-bind="text: $root.selectedPlace().placeFourSquareInfo().venue.rating, style: {'background-color': '#' + $root.selectedPlace().placeFourSquareInfo().venue.ratingColor}"></span>
                             </div>
-
                         </div>
                         <div class="fs-row" data-bind="if: $root.selectedPlace().placeFourSquareInfo().venue.url">
-
                             <a data-bind="text: $root.selectedPlace().placeFourSquareInfo().venue.url, attr: {href: $root.selectedPlace().placeFourSquareInfo().venue.url}"
                                 target="_blank">
                             </a>
                         </div>
-
-                        <blockquotedata-bind="if: $root.selectedPlace().placeFourSquareInfo().qoute !== null">
-                            <p data-bind="text: $root.selectedPlace().placeFourSquareInfo().qoute.text"></p>
-                            <strong>
-                                <i>
-                                    <span data-bind="text: $root.selectedPlace().placeFourSquareInfo().qoute.user"></span>
-                                </i>
-                            </strong>
+                        <blockquote data-bind="if: $root.selectedPlace().placeFourSquareInfo().qoute !== null">
+                            <p data-bind="text: $root.selectedPlace().placeFourSquareInfo().qoute.text"></p>                        
+                            <i>
+                                <span class="bold-text" data-bind="text: $root.selectedPlace().placeFourSquareInfo().qoute.user"></span>
+                            </i>                        
                         </blockquote>
-
                         <div class="fs-row flex-space-around" data-bind="if: $root.selectedPlace().placeFourSquareInfo().venue.photo  !== null">
                             <figure>
                                 <img class="venue-img" data-bind="attr: {src: $root.selectedPlace().placeFourSquareInfo().venue.photo.url, alt: $root.selectedPlace().name}"
@@ -84,12 +75,11 @@
                 </div>
             </div>
         </div>
-    </div>
 </body>
 <!-- Import JS files -->
 <script src="scripts/vendors/jquery-3.2.1.min.js"></script>
 <script src="scripts/vendors/knockout-3.4.2.js"></script>
-<script src="scripts/ko.myPlaces.js"></script>
+<script src="scripts/myPlaces.js"></script>
 <script async defer src="https://maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyDCl3RSg7NnRs5P1zJ5s8SA4qosIPUbxUs&callback=initMap">
 </script>
 
