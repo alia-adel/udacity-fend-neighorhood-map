@@ -52,12 +52,12 @@
             1. Loop on `oldCairoPlaces` array & geocode it to get its exact position & place details.
             2. Once all geocode calls return (either success or failure), knockout binding is done with `PlacesViewModel` call.
 3. In `PlacesViewModel` the following will be executed:
-    **1. Create the following knockout `observables`:**
+    1. **Create the following knockout `observables`:**
         - `filterText` - To observe for the filter text that will be entered by the user.
         - `navHidden`  - Flag to hold if the navigation is shown or hidden.
         - `selectedPlace` - Track the currently selected place object.
         - `myPlaces` - Observable array for all my places
-    **2. Create the following functions:**
+    2. **Create the following functions:**
         - `createPlaceMarker` - Given a title, latitude & longtitude, it adds a marker on the map
             - Adds an onClick event on each marker to do the following:
                 - Bounce the marker.
@@ -88,7 +88,7 @@
             - Calls `loadInfoWindow` function which will do the following:
                 - Load data from `#info-window` div (where `#info-window` is bound to `selectedPlace` data).
                 - Open the infoWindow on the clicked marker.
-    **3. Do the following actions:**
+    3. **Do the following actions:**
         - Loop on `myPlaces` observable array & on each place do the following:
             - Call `createPlaceMarker` to add the marker on the map.
             - Load FourSquare data for this place by calling `loadFourSquarePlaceInfo` function.
