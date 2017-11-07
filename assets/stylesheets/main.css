@@ -70,17 +70,6 @@ header h2 {
     width: 100%;
 }
 
-/* TODO fix the main content after adding -ve margin to navigation */
-/* .main.hidden {
-    position: absolute;
-    width: 100%;
-}
-
-.main.hidden #map {
-    position: absolute;
-    width: 100vh;
-} */
-
 
 #app-nav {
     display: flex;
@@ -232,6 +221,12 @@ header h2 {
 }
 
 
-@media screen and (max-width: 450px) and (min-width: 0) {
+@media screen and (max-width: 460px) and (min-width: 0) {
+    #app-nav {
+        width: 290px;
+    }
 
+    #app-nav.hidden {
+        margin-left: -290px;
+    }
 }
