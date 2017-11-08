@@ -12,7 +12,7 @@ body * {
 }
 
 a {
-    color: #ffffff;
+    color: #fff;
     text-decoration: none;
 }
 
@@ -52,7 +52,7 @@ li {
 
 header {
     z-index: 10;
-    color: #ffffff;
+    color: #fff;
     font-weight: 700;
     display: flex;
     justify-content: space-between;
@@ -67,7 +67,7 @@ header {
 
 header .fa-bars {    
     position: relative;
-    color: #ffffff;
+    color: #fff;
     padding: 5px;
     cursor: pointer;
 }
@@ -178,7 +178,7 @@ header h2 {
 }
 
 .fa-foursquare {
-    color: #ffffff;
+    color: #fff;
     background-color: #fc4575;
     border-radius: 4px;
     padding: 10px 13px 6px 13px;    
@@ -216,7 +216,7 @@ header h2 {
 }
 
 .venue-rating {
-    color: #ffffff;
+    color: #fff;
     font-weight: bold;
     border-radius: 4px;
     width: 30px;
