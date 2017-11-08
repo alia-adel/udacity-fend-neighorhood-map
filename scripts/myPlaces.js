@@ -99,10 +99,10 @@ function Place(name = 'UNKNOWN', place) {
     let self = this;
     self.name = name;
     self.place = place
-    self.location = ko.computed(function() {
+    self.location = ko.computed(function () {
         return self.place.geometry.location;
     }, self);
-    self.googleMapURL = ko.computed(function() {
+    self.googleMapURL = ko.computed(function () {
         return {
             text: 'View on Google Maps',
             url: `${GOOGLE_MAP_URL_BASE}${self.location().lat()},${self.location().lng()}`
@@ -140,7 +140,7 @@ function PlacesViewModel() {
             title: title
         });
 
-        marker.addListener('click', function() {
+        marker.addListener('click', function () {
             bounceMarker(this);
             setMapToPosition(this.position.lat(), this.position.lng(), 20)
             // Search for the marker place & set it as selected
@@ -190,7 +190,7 @@ function PlacesViewModel() {
     /**
      * @description Change navigation's visibility status
      */
-    self.changeNavigationStatus = function() {
+    self.changeNavigationStatus = function () {
         (self.navHidden()) ? self.navHidden(false) : self.navHidden(true);
     }
 
@@ -200,7 +200,7 @@ function PlacesViewModel() {
      *      - Remove the unmatched results from myPlaces' array
      *      - Remove their markers from the map
      */
-    self.filterPlaces = function() {
+    self.filterPlaces = function () {
         // Make sure to reload all places
         let tempPlaces = self.myPlacesBkp;
         let updatePlaces = [];
@@ -234,7 +234,7 @@ function PlacesViewModel() {
      *      - Reset the map position to "Abdeen Palace Museum"
      *      - Clear left navigation selections
      */
-    self.resetPlaces = function() {
+    self.resetPlaces = function () {
         self.myPlaces(self.myPlacesBkp);
         self.filterText("");
         myMarkers.forEach((marker) => {
@@ -263,7 +263,7 @@ function PlacesViewModel() {
      *      - Display Foursquare info related to the selected place
      *      - Highlight the selected place in the left navigation
      */
-    self.triggerPlaceClickActions = function() {
+    self.triggerPlaceClickActions = function () {
         self.navHidden(true);
         self.selectedPlace(this);
         bounceMarker(self.selectedPlace().marker);
@@ -356,7 +356,7 @@ function CenterControl(controlDiv, map) {
     controlUI.appendChild(controlText);
 
     // Setup the click event listeners: simply set the map to Old Cairo center.
-    controlUI.addEventListener('click', function() {
+    controlUI.addEventListener('click', function () {
         setMapToPosition(mapInitialPos.lat, mapInitialPos.lng, 15);
     });
 }
@@ -457,65 +457,59 @@ function loadFourSquarePlaceInfo(place) {
         then((response) => {
             if (response.ok) {
                 return response.json();
-            } else {
-                throw Error(`Error occured with status: ${response.status}`);
             }
         }).then((response) => {
-            if (response.ok) {
-                let fs_response = response.response;
-                // Checking 
-                if (fs_response.groups && fs_response.groups.length > 0 &&
-                    fs_response.groups[0].items && fs_response.groups[0].items.length > 0) {
-                    let tempFSObj = {};
-                    // loading only one item
-                    let first_item = fs_response.groups[0].items[0];
+            let fs_response = response.response;
+            // Checking 
+            if (fs_response.groups && fs_response.groups.length > 0 &&
+                fs_response.groups[0].items && fs_response.groups[0].items.length > 0) {
+                let tempFSObj = {};
+                // loading only one item
+                let first_item = fs_response.groups[0].items[0];
 
-                    // Loading foursquare item qoute & qoute user
-                    if (first_item.tips && first_item.tips.length > 0) {
-                        tempFSObj.qoute = {};
-                        tempFSObj.qoute.text = first_item.tips[0].text;
+                // Loading foursquare item qoute & qoute user
+                if (first_item.tips && first_item.tips.length > 0) {
+                    tempFSObj.qoute = {};
+                    tempFSObj.qoute.text = first_item.tips[0].text;
 
-                        if (first_item.tips[0].user && first_item.tips[0].user.firstName) {
-                            tempFSObj.qoute.user = `${first_item.tips[0].user.firstName} ${first_item.tips[0].user.lastName}`;
-                        }
+                    if (first_item.tips[0].user && first_item.tips[0].user.firstName) {
+                        tempFSObj.qoute.user = `${first_item.tips[0].user.firstName} ${first_item.tips[0].user.lastName}`;
                     }
-
-                    // Loading foursquare item venue info
-                    if (first_item.venue) {
-                        tempFSObj.venue = {};
-                        if (first_item.venue.name) {
-                            tempFSObj.venue.name = first_item.venue.name;
-                        }
-                        if (first_item.venue.url) {
-                            tempFSObj.venue.url = first_item.venue.url;
-                        }
-                        if (first_item.venue.rating) {
-                            tempFSObj.venue.rating = first_item.venue.rating;
-                        }
-                        if (first_item.venue.ratingColor) {
-                            tempFSObj.venue.ratingColor = first_item.venue.ratingColor;
-                        }
-
-                        if (first_item.venue.featuredPhotos && first_item.venue.featuredPhotos.items &&
-                            first_item.venue.featuredPhotos.items.length > 0) {
-                            tempFSObj.venue.photo = {};
-                            tempFSObj.venue.photo.url =
-                                first_item.venue.featuredPhotos.items[0].prefix + 'width' +
-                                first_item.venue.featuredPhotos.items[0].width +
-                                first_item.venue.featuredPhotos.items[0].suffix;
-                            if (first_item.venue.featuredPhotos.items[0].user) {
-                                tempFSObj.venue.photo.user =
-                                    first_item.venue.featuredPhotos.items[0].user.firstName + ' ' +
-                                    first_item.venue.featuredPhotos.items[0].user.lastName;
-                            }
-                        }
-                    }
-                    place.placeFourSquareInfo(tempFSObj);
-                } else {
-                    place.placeFourSquareInfo(undefined);
                 }
-            }else {
-                throw Error(`Error occured with status: ${response.status}`);
+
+                // Loading foursquare item venue info
+                if (first_item.venue) {
+                    tempFSObj.venue = {};
+                    if (first_item.venue.name) {
+                        tempFSObj.venue.name = first_item.venue.name;
+                    }
+                    if (first_item.venue.url) {
+                        tempFSObj.venue.url = first_item.venue.url;
+                    }
+                    if (first_item.venue.rating) {
+                        tempFSObj.venue.rating = first_item.venue.rating;
+                    }
+                    if (first_item.venue.ratingColor) {
+                        tempFSObj.venue.ratingColor = first_item.venue.ratingColor;
+                    }
+
+                    if (first_item.venue.featuredPhotos && first_item.venue.featuredPhotos.items &&
+                        first_item.venue.featuredPhotos.items.length > 0) {
+                        tempFSObj.venue.photo = {};
+                        tempFSObj.venue.photo.url =
+                            first_item.venue.featuredPhotos.items[0].prefix + 'width' +
+                            first_item.venue.featuredPhotos.items[0].width +
+                            first_item.venue.featuredPhotos.items[0].suffix;
+                        if (first_item.venue.featuredPhotos.items[0].user) {
+                            tempFSObj.venue.photo.user =
+                                first_item.venue.featuredPhotos.items[0].user.firstName + ' ' +
+                                first_item.venue.featuredPhotos.items[0].user.lastName;
+                        }
+                    }
+                }
+                place.placeFourSquareInfo(tempFSObj);
+            } else {
+                place.placeFourSquareInfo(undefined);
             }
         }).
         catch((error) => {
