@@ -72,17 +72,17 @@ const mapInitialPos = {
     lng: 31.247779600000058
 };
 const oldCairoPlaces = [{
-    "name": "Salah El Din Al Ayouby Citadel"
+    name: 'Salah El Din Al Ayouby Citadel'
 }, {
-    "name": "Abdeen Palace Museum"
+    name: 'Abdeen Palace Museum'
 }, {
-    "name": "Qalawun Complex"
+    name: 'Qalawun Complex'
 }, {
-    "name": "Wekalet El Ghoury"
+    name: 'Wekalet El Ghoury'
 }, {
-    "name": "Coptic Museum"
+    name: 'Coptic Museum'
 }, {
-    "name": "Sultan Hassan Mosque"
+    name: 'Sultan Hassan Mosque'
 }];
 
 
@@ -110,7 +110,7 @@ function Place(name = 'UNKNOWN', place) {
     }, self);
     self.selectedClassName = ko.observable(false);
     // Foursquare data
-    self.placeFourSquareInfo = ko.observable();
+    self.placeFourSquareInfo = ko.observable({});
 }
 
 
@@ -119,7 +119,9 @@ function Place(name = 'UNKNOWN', place) {
  */
 function PlacesViewModel() {
     let self = this;
-    self.filterText = ko.observable("");
+    // Filter text
+    self.filterText = ko.observable('');
+    // Flag for navigation visibility
     self.navHidden = ko.observable(true);
     // Observe the currently selected place
     self.selectedPlace = ko.observable();
@@ -127,12 +129,12 @@ function PlacesViewModel() {
     /**
      * @description Read places array & create markers on the map
      */
-    self.createPlaceMarker = function(title, lat, lng) {
+    self.createPlaceMarker = function (title, lat, lng) {
         let marker, infowindow;
 
         // Create marker
         marker = new google.maps.Marker({
-            position: {lat,lng},
+            position: { lat, lng },
             map: map,
             animation: google.maps.Animation.DROP,
             title: title
@@ -173,7 +175,7 @@ function PlacesViewModel() {
     /**
      * @description Get the place object based on the given marker
      */
-    self.getMarkerPlace = function(marker) {
+    self.getMarkerPlace = function (marker) {
         let foundPlace;
         self.myPlaces().forEach((place) => {
             if (marker.position.lat() === place.location().lat() &&
@@ -189,7 +191,7 @@ function PlacesViewModel() {
      * @description Change navigation's visibility status
      */
     self.changeNavigationStatus = function() {
-        (self.navHidden()) ? self.navHidden(false): self.navHidden(true);
+        (self.navHidden()) ? self.navHidden(false) : self.navHidden(true);
     }
 
 
@@ -206,7 +208,7 @@ function PlacesViewModel() {
         // loop on places to see if any of the names matches partially the filter text
         for (let i = 0; i < tempPlaces.length; i++) {
             if (tempPlaces[i].name.trim().toLocaleLowerCase().includes(
-                    self.filterText().trim().toLocaleLowerCase())) {
+                self.filterText().trim().toLocaleLowerCase())) {
                 // In case place matches, keep it in a side array
                 updatePlaces.push(tempPlaces[i]);
                 // In case the place matches re-add the marker on the map if not there
@@ -375,9 +377,9 @@ function geoCodePlaces() {
         let counter = oldCairoPlaces.length;
         oldCairoPlaces.forEach((place) => {
             geocoder.geocode({
-                    address: place.name
-                },
-                function(results, status) {
+                address: place.name
+            },
+                function (results, status) {
                     if (status === google.maps.GeocoderStatus.OK) {
                         place.place = results[0];
                         counter--;
@@ -425,7 +427,10 @@ function loadPlacesToPlacesModelArray() {
  * @return {infoPathContent} - {String}
  */
 function loadInfoWindow(marker) {
-    let content = $('#info-window').html();
+    let content = '';
+    if ($('#info-window')) {
+        content = $('#info-window').html();
+    }
 
     let infowindow = new google.maps.InfoWindow({
         content: content,
@@ -449,71 +454,75 @@ function loadFourSquarePlaceInfo(place) {
     place.placeFourSquareInfo(undefined);
 
     fetch(`${FS_LOCATION_SEARCH_URL_BASE}${place.location().lat()},${place.location().lng()}`).
-    then((response) => {
-        if (response.ok) {
-            return response.json();
-        } else {
-            console.log(`Error occured with status: ${response.status}`);
-        }
-    }).then((response) => {
-        let fs_response = response.response;
-        // Checking 
-        if (fs_response.groups && fs_response.groups.length > 0 &&
-            fs_response.groups[0].items && fs_response.groups[0].items.length > 0) {
-            let tempFSObj = {};
-            // loading only one item
-            let first_item = fs_response.groups[0].items[0];
-
-            // Loading foursquare item qoute & qoute user
-            if (first_item.tips && first_item.tips.length > 0) {
-                tempFSObj.qoute = {};
-                tempFSObj.qoute.text = first_item.tips[0].text;
-
-                if (first_item.tips[0].user && first_item.tips[0].user.firstName) {
-                    tempFSObj.qoute.user = `${first_item.tips[0].user.firstName} ${first_item.tips[0].user.lastName}`;
-                }
+        then((response) => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw Error(`Error occured with status: ${response.status}`);
             }
+        }).then((response) => {
+            if (response.ok) {
+                let fs_response = response.response;
+                // Checking 
+                if (fs_response.groups && fs_response.groups.length > 0 &&
+                    fs_response.groups[0].items && fs_response.groups[0].items.length > 0) {
+                    let tempFSObj = {};
+                    // loading only one item
+                    let first_item = fs_response.groups[0].items[0];
 
-            // Loading foursquare item venue info
-            if (first_item.venue) {
-                tempFSObj.venue = {};
-                if (first_item.venue.name) {
-                    tempFSObj.venue.name = first_item.venue.name;
-                }
-                if (first_item.venue.url) {
-                    tempFSObj.venue.url = first_item.venue.url;
-                }
-                if (first_item.venue.rating) {
-                    tempFSObj.venue.rating = first_item.venue.rating;
-                }
-                if (first_item.venue.ratingColor) {
-                    tempFSObj.venue.ratingColor = first_item.venue.ratingColor;
-                }
+                    // Loading foursquare item qoute & qoute user
+                    if (first_item.tips && first_item.tips.length > 0) {
+                        tempFSObj.qoute = {};
+                        tempFSObj.qoute.text = first_item.tips[0].text;
 
-                if (first_item.venue.featuredPhotos && first_item.venue.featuredPhotos.items &&
-                    first_item.venue.featuredPhotos.items.length > 0) {
-                    tempFSObj.venue.photo = {};
-                    tempFSObj.venue.photo.url =
-                        first_item.venue.featuredPhotos.items[0].prefix + "width" +
-                        first_item.venue.featuredPhotos.items[0].width +
-                        first_item.venue.featuredPhotos.items[0].suffix;
-                    if (first_item.venue.featuredPhotos.items[0].user) {
-                        tempFSObj.venue.photo.user =
-                            first_item.venue.featuredPhotos.items[0].user.firstName + " " +
-                            first_item.venue.featuredPhotos.items[0].user.lastName;
+                        if (first_item.tips[0].user && first_item.tips[0].user.firstName) {
+                            tempFSObj.qoute.user = `${first_item.tips[0].user.firstName} ${first_item.tips[0].user.lastName}`;
+                        }
                     }
-                }
-            }
-            place.placeFourSquareInfo(tempFSObj);
-        } else {
-            place.placeFourSquareInfo(undefined);
-        }
-    }).
-    catch((error) => {
-        console.log(`Failed to load FourSquare data with error: ${error}`);
-    });
 
-    return place;
+                    // Loading foursquare item venue info
+                    if (first_item.venue) {
+                        tempFSObj.venue = {};
+                        if (first_item.venue.name) {
+                            tempFSObj.venue.name = first_item.venue.name;
+                        }
+                        if (first_item.venue.url) {
+                            tempFSObj.venue.url = first_item.venue.url;
+                        }
+                        if (first_item.venue.rating) {
+                            tempFSObj.venue.rating = first_item.venue.rating;
+                        }
+                        if (first_item.venue.ratingColor) {
+                            tempFSObj.venue.ratingColor = first_item.venue.ratingColor;
+                        }
+
+                        if (first_item.venue.featuredPhotos && first_item.venue.featuredPhotos.items &&
+                            first_item.venue.featuredPhotos.items.length > 0) {
+                            tempFSObj.venue.photo = {};
+                            tempFSObj.venue.photo.url =
+                                first_item.venue.featuredPhotos.items[0].prefix + 'width' +
+                                first_item.venue.featuredPhotos.items[0].width +
+                                first_item.venue.featuredPhotos.items[0].suffix;
+                            if (first_item.venue.featuredPhotos.items[0].user) {
+                                tempFSObj.venue.photo.user =
+                                    first_item.venue.featuredPhotos.items[0].user.firstName + ' ' +
+                                    first_item.venue.featuredPhotos.items[0].user.lastName;
+                            }
+                        }
+                    }
+                    place.placeFourSquareInfo(tempFSObj);
+                } else {
+                    place.placeFourSquareInfo(undefined);
+                }
+            }else {
+                throw Error(`Error occured with status: ${response.status}`);
+            }
+        }).
+        catch((error) => {
+            console.log(`Failed to load FourSquare data with error: ${error}`);
+        });
+
+    return place.placeFourSquareInfo();
 }
 
 

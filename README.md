@@ -15,7 +15,7 @@
 1. Open `index.html` to view the map.
 2. Click on the hamburger icon in the header to open the navigation.
 
-![Landing page](assets/images/landingPage.PNG)
+    ![Landing page](assets/images/landingPage.PNG)
 
 3. To navigate to a place on the map;
     - Click on the place's name in the left navigation
@@ -24,25 +24,25 @@
 
 4. To filter the places in the left navigation, enter your filter text & click on the filter icon.
 
-![Selected Place](assets/images/Filter_Search_control.PNG)
+    ![Selected Place](assets/images/Filter_Search_control.PNG)
 
-![Selected Place](assets/images/SearchResult.PNG)
+    ![Selected Place](assets/images/SearchResult.PNG)
 
-![Selected Place](assets/images/filter_text2.PNG)
+    ![Selected Place](assets/images/filter_text2.PNG)
 
-![Selected Place](assets/images/filter_text.PNG)
+    ![Selected Place](assets/images/filter_text.PNG)
 
 5. To get back all the places, just click on the refresh icon beside the filter icon.
 
-![Selected Place](assets/images/after_refresh.PNG)
+    ![Selected Place](assets/images/after_refresh.PNG)
 
 6. To view a marker's FourSquare info. click on the required marker or select its place from the left navigation.
 
-![Selected Place](assets/images/infoWindow.PNG)
+    ![Selected Place](assets/images/infoWindow.PNG)
 
 7. To reset the map to the center, click on `Center Map` found at the top center of the map.
 
-![Selected Place](assets/images/centerMap.PNG)
+    ![Selected Place](assets/images/centerMap.PNG)
 
 
 ## Code Walk Through
@@ -100,14 +100,11 @@
 
 
 ## Technical
-### Frameworks
-The following frameworks are used in this application:
+### Frameworks, Libraries & API
+The following frameworks, libraries & APIs are used in this application:
 - Knockout
 - jQuery
-
-### APIs
-The following frameworks are used in this application:
-- Google Maps JavaScript API
+- [Google Maps JavaScript API](https://developers.google.com/maps/documentation/javascript/)
 - [Google Places' Geocoding API](https://developers.google.com/maps/documentation/javascript/examples/geocoding-simple)
 - [FourSquare Venue Search API](https://developer.foursquare.com/docs/api/venues/search)
 

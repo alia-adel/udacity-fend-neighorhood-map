@@ -21,6 +21,7 @@ ul {
     margin: 0;
     padding: 0;
 }
+
 li {
     list-style: none;
     padding: 5px 0; 
@@ -57,8 +58,6 @@ header {
     width: 100%;
     min-height: 70px;
     background: linear-gradient(#00796b, #009688);
-    -webkit-box-shadow: 0px 2px 3px 0px rgb(88, 87, 87);
-    -moz-box-shadow: 0px 2px 3px 0px rgb(88, 87, 87);
     box-shadow: 0px 2px 3px 0px rgb(88, 87, 87);
 }
 
@@ -80,7 +79,12 @@ header h2 {
     width: 100%;
 }
 
+#map {
+    /* width: 100%; */
+    height: 100%;
+}
 
+/* #### Navigation Styles #### */
 #app-nav {
     display: flex;
     flex-direction: column;
@@ -94,11 +98,7 @@ header h2 {
     padding: 10px 0;   
     overflow: auto;
     background: linear-gradient(#00796b, #009688);
-    -webkit-box-shadow: 2px 0px 3px 0px rgb(88, 87, 87);
-    -moz-box-shadow: 2px 0px 3px 0px rgb(88, 87, 87);
     box-shadow: 2px 0px 3px 0px rgb(88, 87, 87);
-    -webkit-transition: margin 0.5s;
-    -moz-transition: margin 0.5s;
     transition: margin 0.5s;
 }
 
@@ -122,26 +122,12 @@ header h2 {
     cursor: pointer;
 }
 
-#app-nav ul li:hover,
-#app-nav ul li.active {
+#app-nav ul li:hover {
     background-color: #00695c;
 }
+/* #### end of Navigation Styles #### */
 
-
-#map {
-    width: 100%;
-    height: 100%;
-}
-
-
-.infoWindow {
-    display: flex;
-    flex-direction: column;
-    width: 200px;
-    height: 200px;
-    overflow: auto;
-}
-
+/* #### Filter form Styles #### */
 .filter-form {
     display: flex;
     justify-content: flex-start;    
@@ -169,34 +155,37 @@ header h2 {
     padding: 15px;
 }
 
-
 .filter-form .fa:hover {
     font-size: 1.75em;
 }
+/* #### end of Filter form Styles #### */
 
-.template {
+/* #### fourSquare Info Window Styles #### */
+.fs-template {
     display: none;
 }
+
 #info-window {
     min-width: 300px;
-    min-height: 300px;
-    width: 300px;
-    height: 300px;
+    min-height: 200px;
+    width: 200px;
+    height: 200px;
     overflow: auto;
 }
-
 
 .fa-foursquare {
     color: #ffffff;
     background-color: #fc4575;
-    padding: 10px 13px 6px 13px;
     border-radius: 4px;
+    padding: 10px 13px 6px 13px;    
     margin-right: 10px;
 }
+
 .fs-row {
     display: flex;
     justify-content: flex-start;
     align-items: center;
+    max-width: 300px;
 }
 
 .fs-card {
@@ -204,9 +193,7 @@ header h2 {
     border-radius: 10px;
     padding: 10px;
     margin: 20px;
-    overflow: auto;
-    -webkit-box-shadow: 0px 0px 7px 2px #f3efef;
-    -moz-box-shadow: 0px 0px 7px 2px #f3efef;
+    overflow: scroll;
     box-shadow: 0px 0px 7px 2px #f3efef;
 }
 
@@ -220,20 +207,19 @@ header h2 {
 .venue-img {
     width: 200px;
     border-radius: 4px;
-    -webkit-box-shadow: 0px 0px 7px 2px #f3efef;
-    -moz-box-shadow: 0px 0px 7px 2px #f3efef;
     box-shadow: 0px 0px 7px 2px #f3efef;
 }
 
 .venue-rating {
     color: #ffffff;
     font-weight: bold;
+    border-radius: 4px;
     width: 30px;
     height: 30px;
-    border-radius: 4px;
     padding: 5px;
     margin-left: 5px;
 }
+/* #### end of Info Window Styles #### */
 
 
 @media screen and (max-width: 460px) and (min-width: 0) {
