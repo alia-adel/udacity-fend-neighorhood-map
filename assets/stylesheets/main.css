@@ -33,11 +33,15 @@ li {
 }
 
 .flex-space-btw {
-    justify-content: space-between;
+    justify-content: space-between !important;
 }
 
 .flex-space-around {
-    justify-content: space-around;
+    justify-content: space-around !important;
+}
+
+.flex-space-even {
+    justify-content: space-evenly !important;
 }
 
 .app-container {
@@ -80,7 +84,7 @@ header h2 {
 }
 
 #map {
-    /* width: 100%; */
+    width: 100%;
     height: 100%;
 }
 
@@ -205,7 +209,8 @@ header h2 {
 }
 
 .venue-img {
-    width: 200px;
+    width: 150px !important;
+    max-width: 150px !important;
     border-radius: 4px;
     box-shadow: 0px 0px 7px 2px #f3efef;
 }

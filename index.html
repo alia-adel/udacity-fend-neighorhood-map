@@ -65,7 +65,7 @@
                                 <span class="bold-text" data-bind="text: $root.selectedPlace().placeFourSquareInfo().qoute.user"></span>
                             </i>                        
                         </blockquote>
-                        <div class="fs-row flex-space-around" data-bind="if: $root.selectedPlace().placeFourSquareInfo().venue.photo  !== null">
+                        <div class="fs-row flex-space-even" data-bind="if: $root.selectedPlace().placeFourSquareInfo().venue.photo  !== null">
                             <figure>
                                 <img class="venue-img" data-bind="attr: {src: $root.selectedPlace().placeFourSquareInfo().venue.photo.url, alt: $root.selectedPlace().name}"
                                 />
