@@ -95,10 +95,10 @@ let myInfoWindows = new Map();
  * @description Place model
  * @constructor
  */
-function Place(name = 'UNKNOWN', place) {
+function Place(place, name = 'UNKNOWN') {
     let self = this;
     self.name = name;
-    self.place = place
+    self.place = place;
     self.location = ko.computed(function () {
         return self.place.geometry.location;
     }, self);
@@ -106,7 +106,7 @@ function Place(name = 'UNKNOWN', place) {
         return {
             text: 'View on Google Maps',
             url: `${GOOGLE_MAP_URL_BASE}${self.location().lat()},${self.location().lng()}`
-        }
+        };
     }, self);
     self.selectedClassName = ko.observable(false);
     // Foursquare data
@@ -130,7 +130,7 @@ function PlacesViewModel() {
      * @description Read places array & create markers on the map
      */
     self.createPlaceMarker = function (title, lat, lng) {
-        let marker, infowindow;
+        let marker;
 
         // Create marker
         marker = new google.maps.Marker({
@@ -142,7 +142,7 @@ function PlacesViewModel() {
 
         marker.addListener('click', function () {
             bounceMarker(this);
-            setMapToPosition(this.position.lat(), this.position.lng(), 20)
+            setMapToPosition(this.position.lat(), this.position.lng(), 20);
             // Search for the marker place & set it as selected
             let place = self.getMarkerPlace(this);
             if (place) {
@@ -156,7 +156,7 @@ function PlacesViewModel() {
         myMarkers.push(marker);
 
         return marker;
-    }
+    };
 
 
 
@@ -184,7 +184,7 @@ function PlacesViewModel() {
             }
         });
         return foundPlace;
-    }
+    };
 
 
     /**
@@ -192,7 +192,7 @@ function PlacesViewModel() {
      */
     self.changeNavigationStatus = function () {
         (self.navHidden()) ? self.navHidden(false) : self.navHidden(true);
-    }
+    };
 
 
     /**
@@ -223,7 +223,7 @@ function PlacesViewModel() {
                 self.myPlaces(updatePlaces);
             }
         }
-    }
+    };
 
     /**
      * @description Resets back list of places & markers
@@ -251,7 +251,7 @@ function PlacesViewModel() {
         self.myPlaces().forEach((place) => {
             place.selectedClassName(false);
         });
-    }
+    };
 
     /**
      * @description One function to trigger all actions needed when clicking on a place
@@ -275,7 +275,7 @@ function PlacesViewModel() {
         });
 
         this.selectedClassName(true);
-    }
+    };
 }
 /* #### end of Kockout View Model #### */
 
@@ -412,7 +412,7 @@ function geoCodePlaces() {
 function loadPlacesToPlacesModelArray() {
     let placesTemp = [];
     oldCairoPlaces.forEach((place) => {
-        placesTemp.push(new Place(place.name, place.place));
+        placesTemp.push(new Place(place.place, place.name));
     });
 
     return placesTemp;
@@ -527,7 +527,7 @@ function loadFourSquarePlaceInfo(place) {
  * @param {boolean} addMarker
  */
 function updateMarker(marker, addMarker) {
-    if (marker && addMarker && marker.getMap() == null) {
+    if (marker && addMarker && marker.getMap() === null) {
         marker.setMap(map);
     }
 
