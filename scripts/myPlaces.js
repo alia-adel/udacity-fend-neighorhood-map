@@ -67,6 +67,7 @@ const FS_CLIENT_SECRET = 'YDBA2IU3ZLW2HGH3EXZS1BXNVYPROWP40BQWTXGUCDYNJD3G';
 const FS_LOCATION_SEARCH_URL_BASE = `https://api.foursquare.com/v2/venues/explore?client_id=${FS_CLIENT_ID}&client_secret=${FS_CLIENT_SECRET}&v=20170801&radius=200&venuePhotos=1&sortByDistance=1&limit=1&ll=`;
 const GOOGLE_MAP_KEY = 'AIzaSyDCl3RSg7NnRs5P1zJ5s8SA4qosIPUbxUs';
 const GOOGLE_MAP_URL_BASE = 'https://maps.google.com/maps?z=20&ll=';
+const MAP_LOAD_ERROR = $('.error');
 // "Abdeen Palace Museum" location
 const mapInitialPos = {
     lat: 30.0430033,
@@ -90,7 +91,6 @@ const oldCairoPlaces = [{
 let map;
 let myMarkers = [];
 let myInfoWindows = new Map();
-
 
 /**
  * @description Place model
@@ -277,24 +277,43 @@ function PlacesViewModel() {
  *              & load places' geocodes    
  */
 function initMap() {
-    map = new google.maps.Map(document.getElementById('map'), {
-        center: mapInitialPos,
-        streetViewControl: true,
-        fullscreenControl: true,
-        scaleControl: true,
-        zoom: 15
-    });
+    // Check that google obect has been created, else display an error
+    if(google && google.maps) {
+        try{
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: mapInitialPos,
+                streetViewControl: true,
+                fullscreenControl: true,
+                scaleControl: true,
+                zoom: 15
+            });
+        
+            // Create the DIV to hold the control and call the CenterControl()
+            // constructor passing in this DIV.
+            let centerControlDiv = document.createElement('div');
+            let centerControl = new CenterControl(centerControlDiv, map);
+        
+            centerControlDiv.index = 1;
+            map.controls[google.maps.ControlPosition.TOP_CENTER].push(centerControlDiv);
+        
+            // GeoCode places
+            geoCodePlaces();
+        } catch(error) {
+            console.log(`Error occured while trying to load the map: ${error}`);
+            $('#map').html(MAP_LOAD_ERROR);
+        }       
+    } else {
+        console.log('Error occured while trying to load the map');
+        $('#map').html(MAP_LOAD_ERROR);
+    }    
+}
 
-    // Create the DIV to hold the control and call the CenterControl()
-    // constructor passing in this DIV.
-    let centerControlDiv = document.createElement('div');
-    let centerControl = new CenterControl(centerControlDiv, map);
-
-    centerControlDiv.index = 1;
-    map.controls[google.maps.ControlPosition.TOP_CENTER].push(centerControlDiv);
-
-    // GeoCode places
-    geoCodePlaces();
+/**
+ * @description load an error message when google maps api url fails to load
+ */
+function onError() {
+    console.log('Error occured while trying to load google maps api script');
+    $('#map').html(MAP_LOAD_ERROR);
 }
 
 /**

@@ -102,5 +102,6 @@ The following frameworks, libraries & APIs are used in this application:
 
 ### Technical Contribution
 - [Google Maps Custom Controls' Example](https://developers.google.com/maps/documentation/javascript/examples/control-custom) is used to add a custom control on the map to reset the view to old Cairo's center.
+- Loader used from [Loading.io](https://loading.io)
 
 

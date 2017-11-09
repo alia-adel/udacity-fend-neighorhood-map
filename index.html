@@ -13,7 +13,7 @@
 <body>
     <div class="app-container">
         <!-- Navigation -->
-        <nav id="app-nav" data-bind="css: {hidden: $data.navHidden}">                
+        <nav class="hidden" id="app-nav" data-bind="css: {hidden: $data.navHidden}">                
             <div class="nav-header">
                 <i class="fa fa-times fa-lg" aria-hidden="true" data-bind="click: $root.changeNavigationStatus"></i>
             </div>
@@ -33,7 +33,9 @@
                 <h2>Old Cairo Map</h2>
             </header>
             <!-- Map -->
-            <div id="map"></div>
+            <div id="map">
+                <img id="page-loader" src="assets/images/Ellipsis.svg" alt="page loader"/>
+            </div>
         </div>
 
         <!-- FourSquare data template -->
@@ -81,11 +83,19 @@
                 </div>
             </div>
         </div>
+        <!-- Error Loading Google Map Template -->
+        <div style="display: none;">
+            <div class="error">
+                <i class="fa fa-exclamation-circle fa-4x" aria-hidden="true"></i>
+                <h1>Error</h1>
+                <h3>Sorry, error occured & google maps cant be displayed at the momenet, please try again after a while</h3>
+            </div>
+        </div>
         <!-- Import JS files -->
         <script src="scripts/vendors/jquery-3.2.1.min.js"></script>
         <script src="scripts/vendors/knockout-3.4.2.js"></script>
         <script src="scripts/myPlaces.js"></script>        
-        <script defer src="https://maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyDCl3RSg7NnRs5P1zJ5s8SA4qosIPUbxUs&callback=initMap">
+        <script defer src="https://maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyDCl3RSg7NnRs5P1zJ5s8SA4qosIPUbxUs&callback=initMap" onerror="onError()">
         </script>
 </body>
 
