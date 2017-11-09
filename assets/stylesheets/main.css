@@ -44,12 +44,6 @@ li {
     justify-content: space-evenly !important;
 }
 
-.app-container {
-    display: flex;
-    position: relative; 
-    height: 100%;       
-}
-
 header {
     z-index: 10;
     color: #fff;
@@ -93,6 +87,10 @@ header h2 {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
+    position: fixed;
+    z-index: 10000;
+    top: 0;
+    left: 0;
     align-items: baseline;
     color: white;
     width: 320px; 
@@ -108,6 +106,16 @@ header h2 {
 
 #app-nav.hidden {
     margin-left: -320px;
+}
+
+#app-nav .nav-header {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    width: 100%;
 }
 
 
@@ -230,12 +238,12 @@ header h2 {
 
 @media screen and (max-width: 460px) and (min-width: 0) {
     #app-nav {
-        width: 270px;
-        min-width: 270px;
+        width: 280px;
+        min-width: 280px;
     }
 
     #app-nav.hidden {
-        margin-left: -270px;
+        margin-left: -280px;
     }
 
     .main header h2 {

@@ -14,6 +14,9 @@
     <div class="app-container">
         <!-- Navigation -->
         <nav id="app-nav" data-bind="css: {hidden: $data.navHidden}">                
+            <div class="nav-header">
+                <i class="fa fa-times fa-lg" aria-hidden="true" data-bind="click: $root.changeNavigationStatus"></i>
+            </div>
             <div class="filter-form">
                 <input type="text" placeholder="Filter places" data-bind="textInput: $root.filterText">
                 <i class="fa fa-refresh fa-lg" aria-hidden="true" data-bind="click: $root.resetPlaces"></i>
