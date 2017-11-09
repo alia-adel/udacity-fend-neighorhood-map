@@ -73,8 +73,8 @@
                     </div>
                 </div>
                 <!-- Display warning to the user if fourSquare data doesn't exist -->
-                <div class="fs-card" data-bind="ifnot: $root.selectedPlace().placeFourSquareInfo()">
-                    <p>Sorry, we are currently unable to load fourSquare information</p>
+                <div data-bind="ifnot: $root.selectedPlace().placeFourSquareInfo()">
+                    <p class="fs-card" >Sorry, we are currently unable to load fourSquare information</p>
                 </div>
             </div>
         </div>
