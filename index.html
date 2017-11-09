@@ -60,10 +60,10 @@
                             </a>
                         </div>
                         <blockquote data-bind="if: $root.selectedPlace().placeFourSquareInfo().qoute !== null">
-                            <p data-bind="text: $root.selectedPlace().placeFourSquareInfo().qoute.text"></p>                        
+                            <p data-bind="text: $root.selectedPlace().placeFourSquareInfo().qoute.text"></p>
                             <i>
                                 <span class="bold-text" data-bind="text: $root.selectedPlace().placeFourSquareInfo().qoute.user"></span>
-                            </i>                        
+                            </i>
                         </blockquote>
                         <div class="fs-row flex-space-even" data-bind="if: $root.selectedPlace().placeFourSquareInfo().venue.photo  !== null">
                             <figure>
@@ -73,14 +73,18 @@
                         </div>
                     </div>
                 </div>
+                <!-- Display warning to the user if fourSquare data doesn't exist -->
+                <div class="fs-card" data-bind="ifnot: $root.selectedPlace().placeFourSquareInfo()">
+                    <p>Sorry, we are currently unable to load fourSquare information</p>
+                </div>
             </div>
         </div>
+        <!-- Import JS files -->
+        <script src="scripts/vendors/jquery-3.2.1.min.js"></script>
+        <script src="scripts/vendors/knockout-3.4.2.js"></script>
+        <script src="scripts/myPlaces.js"></script>
+        <script async defer src="https://maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyDCl3RSg7NnRs5P1zJ5s8SA4qosIPUbxUs&callback=initMap">
+        </script>
 </body>
-<!-- Import JS files -->
-<script src="scripts/vendors/jquery-3.2.1.min.js"></script>
-<script src="scripts/vendors/knockout-3.4.2.js"></script>
-<script src="scripts/myPlaces.js"></script>
-<script async defer src="https://maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyDCl3RSg7NnRs5P1zJ5s8SA4qosIPUbxUs&callback=initMap">
-</script>
 
 </html>
