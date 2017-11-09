@@ -159,14 +159,37 @@ function PlacesViewModel() {
     };
 
 
+    self.allMyPlaces = ko.observableArray(loadPlacesToPlacesModelArray());
 
-    // Initial load to myPlaces
-    self.myPlaces = ko.observableArray(loadPlacesToPlacesModelArray());
-    self.myPlacesBkp = self.myPlaces();
+    /**
+     * @description When user filters on places
+     *      - Remove the unmatched results from myPlaces' array
+     *      - Remove their markers from the map
+     */
+    self.myPlaces = ko.computed(function () {
+        // Make sure to reload all places
+        let tempPlaces = self.allMyPlaces();
+        let updatePlaces = [];
+
+        // loop on places to see if any of the names matches partially the filter text
+        for (let i = 0; i < tempPlaces.length; i++) {
+            if (tempPlaces[i].name.trim().toLocaleLowerCase().includes(
+                self.filterText().trim().toLocaleLowerCase())) {
+                // In case place matches, keep it in a side array
+                updatePlaces.push(tempPlaces[i]);
+                // In case the place matches re-add the marker on the map if not there
+                updateMarker(tempPlaces[i].marker, true);
+            } else {
+                // In case the place doesnt match remove its marker from the map
+                updateMarker(tempPlaces[i].marker, false);
+            }
+        }
+        return updatePlaces;
+    }, self);
 
 
     // Initial Load Place FourSquare info
-    self.myPlaces().forEach((place) => {
+    self.allMyPlaces().forEach((place) => {
         place.marker = self.createPlaceMarker(place.name, place.location().lat(), place.location().lng());
         place.placeFourSquareInfo(loadFourSquarePlaceInfo(place));
     });
@@ -177,7 +200,7 @@ function PlacesViewModel() {
      */
     self.getMarkerPlace = function (marker) {
         let foundPlace;
-        self.myPlaces().forEach((place) => {
+        self.allMyPlaces().forEach((place) => {
             if (marker.position.lat() === place.location().lat() &&
                 marker.position.lng() === place.location().lng()) {
                 foundPlace = place;
@@ -196,36 +219,6 @@ function PlacesViewModel() {
 
 
     /**
-     * @description When user filters on places
-     *      - Remove the unmatched results from myPlaces' array
-     *      - Remove their markers from the map
-     */
-    self.filterPlaces = function () {
-        // Make sure to reload all places
-        let tempPlaces = self.myPlacesBkp;
-        let updatePlaces = [];
-
-        // loop on places to see if any of the names matches partially the filter text
-        for (let i = 0; i < tempPlaces.length; i++) {
-            if (tempPlaces[i].name.trim().toLocaleLowerCase().includes(
-                self.filterText().trim().toLocaleLowerCase())) {
-                // In case place matches, keep it in a side array
-                updatePlaces.push(tempPlaces[i]);
-                // In case the place matches re-add the marker on the map if not there
-                updateMarker(tempPlaces[i].marker, true);
-            } else {
-                // In case the place doesnt match remove its marker from the map
-                updateMarker(tempPlaces[i].marker, false);
-            }
-
-            // Update myPlaces observable array with the update places matching the filter text
-            if (updatePlaces.length > 0) {
-                self.myPlaces(updatePlaces);
-            }
-        }
-    };
-
-    /**
      * @description Resets back list of places & markers
      *      - Reset myPlaces array to the original list
      *      - Clears the filter text
@@ -235,8 +228,10 @@ function PlacesViewModel() {
      *      - Clear left navigation selections
      */
     self.resetPlaces = function () {
-        self.myPlaces(self.myPlacesBkp);
-        self.filterText("");
+        self.allMyPlaces().forEach((place) => {
+            place.selectedClassName(false);
+        });
+        self.filterText('');
         myMarkers.forEach((marker) => {
             updateMarker(marker, true);
         });
@@ -247,10 +242,6 @@ function PlacesViewModel() {
         });
 
         setMapToPosition(mapInitialPos.lat, mapInitialPos.lng, 15);
-
-        self.myPlaces().forEach((place) => {
-            place.selectedClassName(false);
-        });
     };
 
     /**
@@ -269,12 +260,11 @@ function PlacesViewModel() {
         bounceMarker(self.selectedPlace().marker);
         setMapToPosition(this.marker.position.lat(), this.marker.position.lng(), 20);
         loadInfoWindow(this.marker);
-
-        self.myPlaces().forEach((place) => {
+        self.allMyPlaces().forEach((place) => {
             place.selectedClassName(false);
         });
 
-        this.selectedClassName(true);
+        self.selectedPlace().selectedClassName(true);
     };
 }
 /* #### end of Kockout View Model #### */

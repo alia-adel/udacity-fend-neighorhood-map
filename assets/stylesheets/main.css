@@ -126,7 +126,8 @@ header h2 {
     cursor: pointer;
 }
 
-#app-nav ul li:hover {
+#app-nav ul li:hover, 
+#app-nav ul li.active {
     background-color: #00695c;
 }
 /* #### end of Navigation Styles #### */

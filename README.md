@@ -22,19 +22,16 @@
 
     ![Selected Place](assets/images/selectedPlace.PNG)
 
-4. To filter the places in the left navigation, enter your filter text & click on the filter icon.
-
-    ![Selected Place](assets/images/Filter_Search_control.PNG)
+4. To filter the places in the left navigation, just enter your text in the text field.
+    
+    ![Selected Place](assets/images/filter_text.PNG)
 
     ![Selected Place](assets/images/SearchResult.PNG)
-
-    ![Selected Place](assets/images/filter_text2.PNG)
-
-    ![Selected Place](assets/images/filter_text.PNG)
+    
 
 5. To get back all the places, just click on the refresh icon beside the filter icon.
 
-    ![Selected Place](assets/images/after_refresh.PNG)
+    ![Landing page](assets/images/landingPage.PNG)
 
 6. To view a marker's FourSquare info. click on the required marker or select its place from the left navigation.
 
@@ -61,7 +58,7 @@
         - `filterText` - To observe for the filter text that will be entered by the user.
         - `navHidden`  - Flag to hold if the navigation is shown or hidden.
         - `selectedPlace` - Track the currently selected place object.
-        - `myPlaces` - Observable array for all my places.
+        - `myPlaces` - Computed array, based on filterText value.
     2. **Create the following functions:**
         - `createPlaceMarker` - Given a title, latitude & longtitude, it adds a marker on the map
             - Adds an onClick event on each marker to do the following:
@@ -71,13 +68,8 @@
                 - Calls `loadInfoWindow` function which will do the following:
                     - Load data from `#info-window` div (where `#info-window` is bound to `selectedPlace` data).
                     - Open the infoWindow on the clicked marker.
-        - `getMarkerPlace` - Given a marker, it will return the equivelant `Place` object by looping over `myPlaces` observable array.
+        - `getMarkerPlace` - Given a marker, it will return the equivelant `Place` object by looping over `myPlaces` computed array.
         - `changeNavigationStatus` - Adds a css class **hidden** on `#app-nav` when the hamburger icon is clicked.
-        - `filterPlaces` - When the user enters his filter text & clicks on the filter icon this function will do the following:
-            - Copies `myPlaces` observable array to a temp array.
-            - Loops through the temp array & check if the place name matches the entered filter text.
-            - Every non matched place will be removed from `myPlaces` observable array.
-            - `updateMarker` function will be called to remove the un matched markers from the map.
         - `resetPlaces` - When the user clicks on the refresh icon beside the filter icon:
             - `myPlaces` observable array will reset to have all places.
             - `filterText` observable value will be set to empty.
