@@ -68,13 +68,13 @@
                 - Calls `loadInfoWindow` function which will do the following:
                     - Load data from `#info-window` div (where `#info-window` is bound to `selectedPlace` data).
                     - Open the infoWindow on the clicked marker.
-        - `getMarkerPlace` - Given a marker, it will return the equivelant `Place` object by looping over `myPlaces` computed array.
+        - `getMarkerPlace` - Given a marker, it will return the equivelant `Place` object by looping over `allMyPlaces` observable array.
         - `changeNavigationStatus` - Adds a css class **hidden** on `#app-nav` when the hamburger icon is clicked.
         - `resetPlaces` - When the user clicks on the refresh icon beside the filter icon:
-            - `myPlaces` observable array will reset to have all places.
+            - `allMyPlaces` observable array will reset to have all places.
             - `filterText` observable value will be set to empty.
             - Loop over all info windows & close them.
-            - Loop over all places in `myPlaces` observable array & set their selected status to **false**.
+            - Loop over all places in `allMyPlaces` observable array & set their selected status to **false**.
             - Reset the map position to **Abdeen Palace Museum** & reset the zoom to 15.
         - `triggerPlaceClickActions` - When the user clicks on a place in the left navigation the following will happen:
             - Hide the navigation.
@@ -86,7 +86,7 @@
                 - Load data from `#info-window` div (where `#info-window` is bound to `selectedPlace` data).
                 - Open the infoWindow on the clicked marker.
     3. **Do the following actions:**
-        - Loop on `myPlaces` observable array & on each place do the following:
+        - Loop on `allMyPlaces` observable array & on each place do the following:
             - Call `createPlaceMarker` to add the marker on the map.
             - Load FourSquare data for this place by calling `loadFourSquarePlaceInfo` function.
 
