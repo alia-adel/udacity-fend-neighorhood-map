@@ -65,8 +65,7 @@
 const FS_CLIENT_ID = 'RDOSYH0CG0SB2JP25AUKS5OJOUTYWGLJVPAF00GCRB01F5R5';
 const FS_CLIENT_SECRET = 'YDBA2IU3ZLW2HGH3EXZS1BXNVYPROWP40BQWTXGUCDYNJD3G';
 const FS_LOCATION_SEARCH_URL_BASE = `https://api.foursquare.com/v2/venues/explore?client_id=${FS_CLIENT_ID}&client_secret=${FS_CLIENT_SECRET}&v=20170801&radius=200&venuePhotos=1&sortByDistance=1&limit=1&ll=`;
-//const GOOGLE_MAP_KEY = 'AIzaSyDCl3RSg7NnRs5P1zJ5s8SA4qosIPUbxUs'; // old stopped by google
-const GOOGLE_MAP_KEY = 'AIzaSyC5zsmC6L9oDAJU7S40oHoq_G2p53LnVn0'; // theoritically should be working
+const GOOGLE_MAP_KEY = 'AIzaSyC5zsmC6L9oDAJU7S40oHoq_G2p53LnVn0';
 const GOOGLE_MAP_URL_BASE = 'https://maps.google.com/maps?z=20&ll=';
 const MAP_LOAD_ERROR = $('.error');
 // "Abdeen Palace Museum" location
