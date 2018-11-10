@@ -58,22 +58,22 @@
                                 <span class="venue-rating" data-bind="text: $root.selectedPlace().placeFourSquareInfo().venue.rating, style: {'background-color': '#' + $root.selectedPlace().placeFourSquareInfo().venue.ratingColor}"></span>
                             </div>
                         </div>
-                        <div class="fs-row" data-bind="if: $root.selectedPlace().placeFourSquareInfo().venue.url">
+                        <!-- <div class="fs-row" data-bind="if: $root.selectedPlace().placeFourSquareInfo().venue.url">
                             <a data-bind="text: $root.selectedPlace().placeFourSquareInfo().venue.url, attr: {href: $root.selectedPlace().placeFourSquareInfo().venue.url}"
                                 target="_blank">
                             </a>
-                        </div>
-                        <blockquote data-bind="if: $root.selectedPlace().placeFourSquareInfo().qoute !== null">
+                        </div> -->
+                        <!-- <blockquote data-bind="if: $root.selectedPlace().placeFourSquareInfo().qoute !== null">
                             <p data-bind="text: $root.selectedPlace().placeFourSquareInfo().qoute.text"></p>
                             <i>
                                 <span class="bold-text" data-bind="text: $root.selectedPlace().placeFourSquareInfo().qoute.user"></span>
                             </i>
-                        </blockquote>
+                        </blockquote> -->
                         <div class="fs-row flex-space-even" data-bind="if: $root.selectedPlace().placeFourSquareInfo().venue.photo  !== null">
-                            <figure>
+                            <!-- <figure>
                                 <img class="venue-img" data-bind="attr: {src: $root.selectedPlace().placeFourSquareInfo().venue.photo.url, alt: $root.selectedPlace().name}"
                                 />
-                            </figure>
+                            </figure> -->
                         </div>
                     </div>
                 </div>
