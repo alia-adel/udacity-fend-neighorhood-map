@@ -49,8 +49,9 @@
  *     "div "info-window" data is bound to the currently selected place object' fourSquare data" 
  * 
  * - "loadFourSquarePlaceInfo" {function}
- *  1- Using FourSquare venue search api, getting first entry for each place position
- *  2- Load data in "Place" model.
+ *  1- Using FourSquare venue search api, to get first entry for each place position
+ *  2- Then using Foursqare venues api to get venue's details.
+ *  3- Load data in "Place" model.
  * 
  * - "updateMarker" {function}
  *  1- Show or Hide the marker from the map based on the received boolean
@@ -62,9 +63,15 @@
  * ## CONSTANTS/VARIABLES ##
  */
 // Foursquare api authentication
+
+const FS_CLIENT_ID2 = 'VM202LBNSZL5XTXU25BOLIZZ4HKBBC1BSDJIF4TA4G00PJVL';
+const FS_CLIENT_SECRET2 = 'XJKI2JKHRAM0MIMJVKBYEUMRUGORKUBHBPL4K0ENTM0BRO5A';
 const FS_CLIENT_ID = 'RDOSYH0CG0SB2JP25AUKS5OJOUTYWGLJVPAF00GCRB01F5R5';
 const FS_CLIENT_SECRET = 'YDBA2IU3ZLW2HGH3EXZS1BXNVYPROWP40BQWTXGUCDYNJD3G';
-const FS_LOCATION_SEARCH_URL_BASE = `https://api.foursquare.com/v2/venues/explore?client_id=${FS_CLIENT_ID}&client_secret=${FS_CLIENT_SECRET}&v=20170801&radius=200&venuePhotos=1&sortByDistance=1&limit=1&ll=`;
+const FS_QP_KEYS = `client_id=${FS_CLIENT_ID}&client_secret=${FS_CLIENT_SECRET}`;
+// const FS_QP_KEYS = `client_id=${FS_CLIENT_ID2}&client_secret=${FS_CLIENT_SECRET2}`;
+const FS_VENUE_ID_API = `https://api.foursquare.com/v2/venues/search?${FS_QP_KEYS}&v=20170801&radius=200&sortByDistance=1&limit=1&ll=`;
+const FS_VENUE_INFO_API = `https://api.foursquare.com/v2/venues/VENUE-ID?${FS_QP_KEYS}&v=20120609`;
 const GOOGLE_MAP_KEY = 'AIzaSyC5zsmC6L9oDAJU7S40oHoq_G2p53LnVn0';
 const GOOGLE_MAP_URL_BASE = 'https://maps.google.com/maps?z=20&ll=';
 const MAP_LOAD_ERROR = $('.error');
@@ -85,7 +92,8 @@ const oldCairoPlaces = [{
     name: 'Coptic Museum'
 }, {
     name: 'Sultan Hassan Mosque'
-}];
+}
+];
 
 
 let map;
@@ -135,7 +143,10 @@ function PlacesViewModel() {
 
         // Create marker
         marker = new google.maps.Marker({
-            position: { lat, lng },
+            position: {
+                lat,
+                lng
+            },
             map: map,
             animation: google.maps.Animation.DROP,
             title: title
@@ -278,8 +289,8 @@ function PlacesViewModel() {
  */
 function initMap() {
     // Check that google obect has been created, else display an error
-    if(google && google.maps) {
-        try{
+    if (google && google.maps) {
+        try {
             map = new google.maps.Map(document.getElementById('map'), {
                 center: mapInitialPos,
                 streetViewControl: true,
@@ -287,25 +298,25 @@ function initMap() {
                 scaleControl: true,
                 zoom: 15
             });
-        
+
             // Create the DIV to hold the control and call the CenterControl()
             // constructor passing in this DIV.
             let centerControlDiv = document.createElement('div');
             let centerControl = new CenterControl(centerControlDiv, map);
-        
+
             centerControlDiv.index = 1;
             map.controls[google.maps.ControlPosition.TOP_CENTER].push(centerControlDiv);
-        
+
             // GeoCode places
             geoCodePlaces();
-        } catch(error) {
+        } catch (error) {
             console.log(`Error occured while trying to load the map: ${error}`);
             $('#map').html(MAP_LOAD_ERROR);
-        }       
+        }
     } else {
         console.log('Error occured while trying to load the map');
         $('#map').html(MAP_LOAD_ERROR);
-    }    
+    }
 }
 
 /**
@@ -451,68 +462,75 @@ function loadInfoWindow(marker) {
  */
 function loadFourSquarePlaceInfo(place) {
     place.placeFourSquareInfo(undefined);
-
-    fetch(`${FS_LOCATION_SEARCH_URL_BASE}${place.location().lat()},${place.location().lng()}`).
+    let tempFSObj = {};
+    let id_url = `${FS_VENUE_ID_API}${place.location().lat()},${place.location().lng()}`;
+    console.log(`Search for venue api ${id_url}`);
+    fetch(id_url).
         then((response) => {
             if (response.ok) {
                 return response.json();
             }
         }).then((response) => {
+            if (response.meta.code !== 200) {
+                return Promise.reject(`response: ${response.meta.code}`);
+            }
             let fs_response = response.response;
             // Checking 
-            if (fs_response.groups && fs_response.groups.length > 0 &&
-                fs_response.groups[0].items && fs_response.groups[0].items.length > 0) {
-                let tempFSObj = {};
-                // loading only one item
-                let first_item = fs_response.groups[0].items[0];
-
-                // Loading foursquare item qoute & qoute user
-                if (first_item.tips && first_item.tips.length > 0) {
-                    tempFSObj.qoute = {};
-                    tempFSObj.qoute.text = first_item.tips[0].text;
-
-                    if (first_item.tips[0].user && first_item.tips[0].user.firstName) {
-                        tempFSObj.qoute.user = `${first_item.tips[0].user.firstName} ${first_item.tips[0].user.lastName}`;
-                    }
-                }
-
-                // Loading foursquare item venue info
-                if (first_item.venue) {
+            if (fs_response && fs_response.venues && fs_response.venues.length > 0) {
+                // Loading foursquare item venue info (Id & name)
+                if (fs_response.venues[0]) {
                     tempFSObj.venue = {};
-                    if (first_item.venue.name) {
-                        tempFSObj.venue.name = first_item.venue.name;
-                    }
-                    if (first_item.venue.url) {
-                        tempFSObj.venue.url = first_item.venue.url;
-                    }
-                    if (first_item.venue.rating) {
-                        tempFSObj.venue.rating = first_item.venue.rating;
-                    }
-                    if (first_item.venue.ratingColor) {
-                        tempFSObj.venue.ratingColor = first_item.venue.ratingColor;
-                    }
+                    tempFSObj.venue.id = (fs_response.venues[0].id) ? fs_response.venues[0].id : null;
+                    tempFSObj.venue.name = (fs_response.venues[0].name) ? fs_response.venues[0].name : null;
 
-                    if (first_item.venue.featuredPhotos && first_item.venue.featuredPhotos.items &&
-                        first_item.venue.featuredPhotos.items.length > 0) {
-                        tempFSObj.venue.photo = {};
-                        tempFSObj.venue.photo.url =
-                            first_item.venue.featuredPhotos.items[0].prefix + 'width' +
-                            first_item.venue.featuredPhotos.items[0].width +
-                            first_item.venue.featuredPhotos.items[0].suffix;
-                        if (first_item.venue.featuredPhotos.items[0].user) {
-                            tempFSObj.venue.photo.user =
-                                first_item.venue.featuredPhotos.items[0].user.firstName + ' ' +
-                                first_item.venue.featuredPhotos.items[0].user.lastName;
-                        }
+                    if (tempFSObj.venue.id) {
+                        return Promise.resolve(tempFSObj.venue.id);
+                    } else {
+                        return Promise.reject('No venue found');
                     }
                 }
-                place.placeFourSquareInfo(tempFSObj);
-            } else {
-                place.placeFourSquareInfo(undefined);
             }
-        }).
-        catch((error) => {
-            console.log(`Failed to load FourSquare data with error: ${error}`);
+        }).then((venueID) => {
+            if (venueID) {
+                // Get venue's details
+                let venue_url = FS_VENUE_INFO_API.replace('VENUE-ID', tempFSObj.venue.id);
+                fetch(venue_url).then((response) => {
+                    return response.json();
+                }).then((response) => {
+                    // log api response
+                    if (response && response.meta && response.meta.code !== 200) {
+                        console.error(response.meta);
+                        return place.placeFourSquareInfo(undefined);
+                    } else {
+                        let venue = response.response.venue;
+                        if (venue.tips && venue.tips.groups && venue.tips.groups.length > 0 && venue.tips.groups[0].items
+                            && venue.tips.groups[0].items.length > 0) {
+                            let userTip = venue.tips.groups[0].items[0];
+                            tempFSObj.qoute = {};
+                            tempFSObj.qoute.text = userTip.text;
+
+                            if (userTip.user && userTip.user.firstName) {
+                                tempFSObj.qoute.user = `${userTip.user.firstName} ${userTip.user.lastName}`;
+                            }
+                        }
+
+                        tempFSObj.venue.url = (venue.shortUrl) ? venue.shortUrl : null;
+                        tempFSObj.venue.rating = (venue.rating) ? venue.rating : 0;
+                        tempFSObj.venue.ratingColor = (venue.ratingColor) ? venue.ratingColor : '00b551';
+
+                        if (venue.bestPhoto && venue.bestPhoto) {
+                            tempFSObj.venue.photo = {};
+                            tempFSObj.venue.photo.url =
+                                venue.bestPhoto.prefix + 'width' +
+                                venue.bestPhoto.width +
+                                venue.bestPhoto.suffix;
+                        }
+                        return place.placeFourSquareInfo(tempFSObj);
+                    }
+                });
+            }
+        }).catch((error) => {
+            console.log(`Failed to load FourSquare data with error: ${error}`, error);
         });
 
     return place.placeFourSquareInfo();

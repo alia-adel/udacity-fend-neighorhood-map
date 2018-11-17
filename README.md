@@ -99,6 +99,7 @@ The following frameworks, libraries & APIs are used in this application:
 - [Google Maps JavaScript API](https://developers.google.com/maps/documentation/javascript/)
 - [Google Places' Geocoding API](https://developers.google.com/maps/documentation/javascript/examples/geocoding-simple)
 - [FourSquare Venue Search API](https://developer.foursquare.com/docs/api/venues/search)
+- [FourSquare Venue Details API](https://developer.foursquare.com/docs/api/venues/details)
 
 ### Technical Contribution
 - [Google Maps Custom Controls' Example](https://developers.google.com/maps/documentation/javascript/examples/control-custom) is used to add a custom control on the map to reset the view to old Cairo's center.

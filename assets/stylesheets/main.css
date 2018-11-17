@@ -73,7 +73,7 @@ header .fa-bars {
 
 header h2 {    
     padding-right: 10px;
-    text-shadow: 4px 3px 0 #009688, 2px 5px 0 rgba(0,0,0,0.15);
+    /* text-shadow: 4px 3px 0 #009688, 2px 5px 0 rgba(0,0,0,0.15); */
 }
 
 .main {
